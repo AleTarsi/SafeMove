@@ -28,3 +28,6 @@ def fromLandMarkTo3dPose(human_part,landmark,width,height):
     position = [landmark[human_part].x * width,landmark[human_part].y * height,landmark[human_part].z *width]
     return position
 
+def null():
+    return 0
+    
