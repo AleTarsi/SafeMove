@@ -14,9 +14,10 @@ mp_pose.Pose(static_image_mode=False,
 
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
+
+
 ###################################### Select Source ##########################################
-path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_06.mp4'
-cap = cv2.VideoCapture(path)
+cap = cv2.VideoCapture(0)
 
 ################################## Start Processing ###########################################
 with mp_pose.Pose() as pose:
@@ -26,6 +27,18 @@ with mp_pose.Pose() as pose:
         # Recolor image to RGB as cv2 and mp use different standards
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, c = image.shape # height, width, channels
+        
+        ############################ Camera matrix and distortion martrix ################################
+        focal_length = w * 1
+        center = (w/2, h/2)
+        camera_matrix = np.array(
+                                    [[focal_length, 0, center[0]],
+                                    [0, focal_length, center[1]],
+                                    [0, 0, 1]], dtype = "double"
+                                    )
+        
+        distortion = np.zeros((4, 1))
+        ####################################################################################################
         
         image.flags.writeable = False #make it computationally efficient
       
@@ -62,14 +75,66 @@ with mp_pose.Pose() as pose:
             # cv2.line(image, Neck[0:1], Hip[0:1], (255, 0, 0), 3)
             # cv2.line(image, p1, p2, (255, 0, 0), 3)
 
-            hip2neck = np.array(Neck - Hip)
-            hip2vertical_line = np.array(np.array([Hip[0],100,Hip[2]]) - Hip)
-            theta = np.degrees(np.arccos(np.dot(hip2neck,hip2vertical_line)/(np.linalg.norm(hip2neck)*np.linalg.norm(hip2vertical_line))))
+            model_points = []
+            image_points = []
             
-            cv2.putText(image, str(int(theta)), 
-                           tuple((int(Chest[0]),int(Chest[1]))), 
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2, cv2.LINE_AA
-                            )
+            for idx, lm in enumerate(results.pose_landmarks.landmark):
+                if idx<=10: ## Face and shoulder landmarks
+                    model_points.append([lm.x*w, lm.y*h, lm.z])
+                    image_points.append([lm.x * w, lm.y * h])
+                    # print("idx ", idx, "lm.x", "lm.y", lm.y, "lm.z", lm.z, "\n")
+            
+            model_points=np.float64(model_points)
+            image_points=np.float64(image_points)
+            
+            success, rot_vec, trans_vec = cv2.solvePnP(model_points, image_points, camera_matrix, distortion)
+            
+            rmat, jac = cv2.Rodrigues(rot_vec)
+            # Get angles
+            angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(rmat)
+            
+            # Get the y rotation degree
+            x = angles[0] * 360
+            y = angles[1] * 360
+            z = angles[2] * 360
+            
+            # print("x ", x, "y", y, "z", z, "\n")
+            
+            # See where the user's head tilting
+            if y < -10:
+                text = "Looking Left"
+            elif y > 10:
+                text = "Looking Right"
+            elif x < -10:
+                text = "Looking Down"
+            elif x > 10:
+                text = "Looking Up"
+            else:
+                text = "Forward"
+                
+            text = str(x)
+            #  Add the text on the image
+            cv2.putText(image, text, (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            text = str(y)
+            #  Add the text on the image
+            cv2.putText(image, text, (20, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            text = str(z)
+            #  Add the text on the image
+            cv2.putText(image, text, (20, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            
+            transformation = np.eye(4)  # needs to 4x4 because you have to use homogeneous coordinates
+            transformation[0:3, 3] = trans_vec.squeeze()
+            transformation[0:3, 0:3] = rmat
+            
+            
+            # transform model coordinates into homogeneous coordinates
+            model_points_hom = np.concatenate((model_points, np.ones((model_points.shape[0], 1))), axis=1)
+
+            # apply the transformation
+            world_points = model_points_hom.dot(np.linalg.inv(transformation).T)
+                       
+
+            
         except:
             print("Error :( \n")
             
