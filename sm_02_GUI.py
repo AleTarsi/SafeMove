@@ -7,11 +7,18 @@ class Gui:
         self.tracked_points = []
         #Graphical elements
         self.fig = plt.figure()
+        
+        self.fig2 = plt.figure()
+        
+        self.ax2 = self.fig2.add_subplot(111, aspect='equal', autoscale_on=False,
+                             xlim=(-2.5, 2.5), ylim=(-2.5, 2.5),projection='3d')
+        
         self.ax = self.fig.add_subplot(111, aspect='equal', autoscale_on=False,
                              xlim=(-2.5, 2.5), ylim=(-2.5, 2.5),projection='3d')
+        
         self.ax.grid(visible=True, which='both')
 
-    def draw3D(self,landmarks):
+    def draw3D(self,landmarks, extraPoint=False):
 
         landmark_point = []
 
@@ -93,9 +100,47 @@ class Gui:
             waist_y.append(point[2])
             waist_z.append(point[1] * (-1))
         self.ax.plot(waist_x, waist_y, waist_z)
+        
+    
+        if extraPoint is not False:
+            self.ax.plot(np.linspace(face_x[0],extraPoint[0],10),np.linspace(face_y[0],extraPoint[1],10),np.linspace(face_z[0],extraPoint[2],10))
+            
 
 
         plt.pause(.001)
 
         return
+    
+    def drawFace_fromPoints(self,lm):
+        
+        self.ax.cla()
+        self.ax.set_xlim3d(-0.5, 0.5)
+        self.ax.set_ylim3d(-0.5, 0.5)
+        self.ax.set_zlim3d(-0.5, 0.5)
+        
+        # face
+        face_index_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        face_x, face_y, face_z = [], [], []
+        for index in face_index_list:
+            point = lm[index]
+            face_x.append(point[0])
+            face_y.append(point[1])
+            face_z.append(point[2])
+            # print(face_x[0], "\t", face_y[0], "\t", face_z[0], "\n")
+        
+        # print("\n END \n")
+                 
+            
+        self.ax.scatter(face_x, face_y, face_z, c='red')
+        
+        plt.pause(.001)
+    
+    def drawRotationVector(self,vect):
+        self.ax2.cla()
+        self.ax2.set_xlim3d(-0.5, 0.5)
+        self.ax2.set_ylim3d(-0.5,0.5)
+        self.ax2.set_zlim3d(-0.5, 0.5)
+        self.ax2.plot(np.linspace(0,vect[0],10), np.linspace(0,vect[1],10), np.linspace(0,vect[2],10), c='red')
+        
+        plt.pause(.001)
 
