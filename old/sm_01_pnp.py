@@ -18,8 +18,8 @@ drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
 my_GUI = Gui()
 
-path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_07.mp4'
-cap = cv2.VideoCapture(0)
+path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_09.mp4'
+cap = cv2.VideoCapture(path)
 speed=5
 
 while cap.isOpened():
@@ -52,7 +52,7 @@ while cap.isOpened():
     if results.pose_landmarks:
         for idx, lm in enumerate(results.pose_landmarks.landmark): #CHECK IF I NEED WORLD IN HERE!
             world_lm = results.pose_world_landmarks.landmark[idx]
-            if idx <=10:
+            if idx == 0 or idx == 3 or idx == 6 or idx == 7 or idx == 8 or idx == 9 or idx == 10:
                 
                 if idx == 0:
                     nose_2d = (lm.x*img_w, lm.y*img_h)
@@ -62,8 +62,16 @@ while cap.isOpened():
                 face_2d.append([lm.x*img_w, lm.y*img_h])
 
                 # Get the 3D Coordinates
-                face_3d.append([-world_lm.x, -world_lm.y, -world_lm.z])       
-        
+                # face_3d.append([-world_lm.x, -world_lm.y, -world_lm.z])       
+
+        face_3d.append([0, 0, 0]);          # Nose tip
+        face_3d.append([225, 170, -135]);   # Left eye left corner
+        face_3d.append([-225, 170, -135]);  # Right eye right corner
+        face_3d.append([340, 0, -270]);     # Left ear
+        face_3d.append([-340, 0, -270]);    # Right ear
+        face_3d.append([150, -150, -125]);  # Left Mouth corner
+        face_3d.append([-150, -150, -125]);  # Right Mouth corner
+                
         # Convert it to the NumPy array
         face_2d = np.array(face_2d, dtype=np.float64)
 
@@ -80,21 +88,21 @@ while cap.isOpened():
         
         success, rot_vec, trans_vec = cv2.solvePnP(face_3d, face_2d, cam_matrix, dist_matrix, flags=cv2.SOLVEPNP_SQPNP) # SOLVEPNP_ITERATIVE Iterative method is based on Levenberg-Marquardt optimization. In this case, the function finds such a pose that minimizes reprojection error, that is the sum of squared distances between the observed projections imagePoints and the projected (using projectPoints() ) objectPoints .
 
-        transformation = np.eye(4)  # needs to 4x4 because you have to use homogeneous coordinates
-        transformation[0:3, 3] = trans_vec.squeeze() # Homogeneous transformation from camera to world
+        # transformation = np.eye(4)  # needs to 4x4 because you have to use homogeneous coordinates
+        # transformation[0:3, 3] = trans_vec.squeeze() # Homogeneous transformation from camera to world
         
-        # the transformation consists only of the translation, because the rotation is accounted for in the model coordinates. Take a look at this (https://codepen.io/mediapipe/pen/RwGWYJw to see how the model coordinates behave - the hand rotates, but doesn't translate
+        # # the transformation consists only of the translation, because the rotation is accounted for in the model coordinates. Take a look at this (https://codepen.io/mediapipe/pen/RwGWYJw to see how the model coordinates behave - the hand rotates, but doesn't translate
 
-        # transform model coordinates into homogeneous coordinates
-        model_points_hom = np.concatenate((face_3d, np.ones((11, 1))), axis=1)
+        # # transform model coordinates into homogeneous coordinates
+        # model_points_hom = np.concatenate((face_3d, np.ones((7, 1))), axis=1)
         
-        # apply the transformation
-        world_points_CamFrame = model_points_hom.dot(np.linalg.inv(transformation).T)
+        # # apply the transformation
+        # world_points_CamFrame = model_points_hom.dot(np.linalg.inv(transformation).T)
         
-        # my_GUI.drawRotationVector(rot_vec/ np.linalg.norm(rot_vec))
+        # # my_GUI.drawRotationVector(rot_vec/ np.linalg.norm(rot_vec))
         
-        # # Get rotational matrix
-        rmat, jac = cv2.Rodrigues(rot_vec)
+        # # # Get rotational matrix
+        # rmat, jac = cv2.Rodrigues(rot_vec)
 
         # # Get angles
         # angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(rmat)
@@ -106,10 +114,14 @@ while cap.isOpened():
         
 
         # Display the nose direction - Project in the image plane a point far in front of the nose
-        nose_3d_projection, jacobian = cv2.projectPoints((nose_3d[0], nose_3d[1]+10, nose_3d[2]), rot_vec, trans_vec, cam_matrix, dist_matrix)
+        nose_3d_projection, jacobian = cv2.projectPoints((face_3d[0][0], face_3d[0][1], face_3d[0][2]+100), rot_vec, trans_vec, cam_matrix, dist_matrix)
         
-        my_GUI.draw3D(results.pose_world_landmarks, extraPoint=[nose_3d[0], nose_3d[1], nose_3d[2]+np.dot(rmat[2][0:3],np.array([10,0,0]))])
-        # my_GUI.draw3D(results.pose_world_landmarks, extraPoint=nose_3d4_projection)
+        # my_GUI.draw3D(results.pose_world_landmarks, extraPoint=[nose_3d[0], nose_3d[1], nose_3d[2]+np.dot(rmat[2][0:3],np.array([10,0,0]))])
+
+
+        face_3d = np.concatenate((face_3d, np.array(([[face_3d[0][0], face_3d[0][1], face_3d[0][2]+100]]))), axis=0)
+
+        my_GUI.Static3DFace(face_3d) # one 
         
         # The transformation consists only of the translation, because the rotation is accounted for in the model coordinates. Take a look at this (https://codepen.io/mediapipe/pen/RwGWYJw to see how the model coordinates behave - the hand rotates, but doesn't translate
         # If you look at the 3d plot you will realize that the body does not translate in space, but rotates. Hence we just need a translation.
@@ -118,7 +130,7 @@ while cap.isOpened():
         p1 = np.array([nose_2d[0], nose_2d[1]], dtype=int)
         p2 = np.array([nose_3d_projection[0][0][0] , nose_3d_projection[0][0][1]], dtype=int)
         
-        # cv2.line(image, int(p1), int(p2), (255, 0, 0), 3)
+        cv2.line(image, p1, p2, (255, 0, 0), 3)
         
         for idx, point in enumerate(face_2d):
             cv2.circle(image, (int(point[0]), int(point[1])), 3, (0,0,255), 3)
