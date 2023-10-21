@@ -3,7 +3,7 @@ import mediapipe as mp
 import numpy as np
 import time
 from sm_02_GUI import Gui
-from sm_00_utils import ComputeAngle, ImageCoordinateFrame
+from sm_00_utils import ComputeAngle, ImageCoordinateFrame, _3DCoordinateFrame
 from sm_03_camera_calibration import camera_calibration
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
@@ -89,8 +89,10 @@ while cap.isOpened():
         success, rot_vec, trans_vec = cv2.solvePnP(face_3d, face_2d, cam_matrix, dist_matrix, flags=cv2.SOLVEPNP_SQPNP) # SOLVEPNP_ITERATIVE Iterative method is based on Levenberg-Marquardt optimization. In this case, the function finds such a pose that minimizes reprojection error, that is the sum of squared distances between the observed projections imagePoints and the projected (using projectPoints() ) objectPoints .
 
         # Display the nose direction - Project in the image plane a point far in front of the nose
+        # face_3d[0][0], face_3d[0][1], face_3d[0][2]+3000 -> means a point placed further in the z direction in the nose reference frame
         nose_3d_projection, jacobian = cv2.projectPoints((face_3d[0][0], face_3d[0][1], face_3d[0][2]+3000), rot_vec, trans_vec, cam_matrix, dist_matrix)
         
+        # _3DCoordinateFrame(image, rot_vec, trans_vec, cam_matrix, dist_matrix) 
 
         face_3d = np.concatenate((face_3d, np.array(([[face_3d[0][0], face_3d[0][1], face_3d[0][2]+100]]))), axis=0)
 
@@ -106,7 +108,9 @@ while cap.isOpened():
         
         ImageCoordinateFrame(image)
         
-        v1 = np.array(())
+        print(rot_vec)
+                
+        # FnoseX,FnoseY,FnoseZ = Compute3DBaseGivenV1(face_3d[0][0], face_3d[0][1], face_3d[0][2]+3000)
         # I have the nose on the top left corner in this way
         # cv2.putText(image, f'angle: {ComputeAngle(v1,v2)}', (20,370), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
         
