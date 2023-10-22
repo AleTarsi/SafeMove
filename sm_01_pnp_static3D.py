@@ -3,7 +3,7 @@ import mediapipe as mp
 import numpy as np
 import time
 from sm_02_GUI import Gui
-from sm_00_utils import ComputeAngle, ImageCoordinateFrame, _3DCoordinateFrame
+from sm_00_utils import ComputeAngle, ImageCoordinateFrame, _3DCoordinateFrame, myRollWrap
 from sm_03_camera_calibration import camera_calibration
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
@@ -21,7 +21,7 @@ drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
 firstFigure = Gui()
             
-path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_07.mp4'
+path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_0.mp4'
 cap = cv2.VideoCapture(0) # 0 for webcam
 speed=5
 
@@ -90,13 +90,13 @@ while cap.isOpened():
 
         # Display the nose direction - Project in the image plane a point far in front of the nose
         # face_3d[0][0], face_3d[0][1], face_3d[0][2]+3000 -> means a point placed further in the z direction in the nose reference frame
-        nose_3d_projection, jacobian = cv2.projectPoints((face_3d[0][0], face_3d[0][1], face_3d[0][2]+3000), rot_vec, trans_vec, cam_matrix, dist_matrix)
+        nose_3d_projection, jacobian = cv2.projectPoints((face_3d[0][0], face_3d[0][1], face_3d[0][2]+1000), rot_vec, trans_vec, cam_matrix, dist_matrix)
         
         # _3DCoordinateFrame(image, rot_vec, trans_vec, cam_matrix, dist_matrix) 
 
         face_3d = np.concatenate((face_3d, np.array(([[face_3d[0][0], face_3d[0][1], face_3d[0][2]+100]]))), axis=0)
 
-        firstFigure.Draw3DFace(face_3d) # one 
+        # firstFigure.Draw3DFace(face_3d) # one 
         
         p1 = np.array([nose_2d[0], nose_2d[1]], dtype=int)
         p2 = np.array([nose_3d_projection[0][0][0] , nose_3d_projection[0][0][1]], dtype=int)
@@ -107,13 +107,17 @@ while cap.isOpened():
         cv2.line(image, p1, p2, (255, 0, 0), 3)
         
         ImageCoordinateFrame(image)
-        
-        print(rot_vec)
                 
-        # FnoseX,FnoseY,FnoseZ = Compute3DBaseGivenV1(face_3d[0][0], face_3d[0][1], face_3d[0][2]+3000)
-        # I have the nose on the top left corner in this way
-        # cv2.putText(image, f'angle: {ComputeAngle(v1,v2)}', (20,370), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
+        Rmat,_ = cv2.Rodrigues(rot_vec)
+        angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(Rmat) # this function implements the results written in the paper RotationMatrixToRollPitchYaw
         
+                
+        print('x: ',  myRollWrap(angles[0])) 
+        print('y: ',  angles[1]) 
+        print('z: ',  angles[2]) 
+        
+        cv2.putText(image, f'roll: {np.round(myRollWrap(angles[0]),1)}', (20,370), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
+        cv2.putText(image, f'pitch: {np.round(angles[1],1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
         
 
     end = time.time()

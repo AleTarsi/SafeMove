@@ -78,6 +78,15 @@ def ComputeAngle(base_link_vector,following_link_vector):
     
     return theta
 
+def myRollWrap(angle):
+    if angle < 0 :
+        roll = angle + 180
+    else:
+        roll = angle - 180
+    
+    return roll
+            
+
 def ImageCoordinateFrame(image):
     cv2.line(image, np.array([0,0]), np.array([20,0]), (255, 0, 0), 3)
     cv2.line(image, np.array([0,0]), np.array([0,20]), (0, 0, 255), 3)
