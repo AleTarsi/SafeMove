@@ -3,7 +3,7 @@ import cv2
  
 red = (0,0,255)
 green = (0,255,0)
-blue = (0,255,0)
+blue = (255,0,0)
 
 def computeMidPosition(A,B, Lambda = 0.5):
     
@@ -18,7 +18,7 @@ def computeMidPosition(A,B, Lambda = 0.5):
     B = np.array(B) # Right Hip
 
     mid = Lambda*A + (1-Lambda)*B
-    return mid 
+    return mid, mid[0], mid[1], mid[2]
 
 def fromLandMarkTo3dPose(human_part,landmark,width,height):
     
@@ -94,14 +94,12 @@ def ImageCoordinateFrame(image):
     cv2.putText(image, 'x', (30,25), cv2.FONT_HERSHEY_SIMPLEX, 1.5, red, 2)
     cv2.putText(image, 'y', (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, green, 2)
 
-def _3DCoordinateFrame(image, rot_vec, trans_vec, cam_matrix, dist_matrix):
-    zero3D = np.zeros((3,1))
+def _3DCoordinateFrame(image, _2D_Origin, _3D_Origin, rot_vec, trans_vec, cam_matrix, dist_matrix):
     
-    VbaseX, _ = cv2.projectPoints((3000, 0, 0), zero3D, zero3D, cam_matrix, dist_matrix)
-    VbaseY, _ = cv2.projectPoints((0, 3000, 0), zero3D, zero3D, cam_matrix, dist_matrix)
-    VbaseZ, _ = cv2.projectPoints((0, 0, 3000), zero3D, zero3D, cam_matrix, dist_matrix)
+    VbaseX, _ = cv2.projectPoints((_3D_Origin[0]+300, _3D_Origin[1], _3D_Origin[2]), rot_vec, trans_vec, cam_matrix, dist_matrix)
+    VbaseY, _ = cv2.projectPoints((_3D_Origin[0], _3D_Origin[1]+300, _3D_Origin[2]), rot_vec, trans_vec, cam_matrix, dist_matrix)
+    VbaseZ, _ = cv2.projectPoints((_3D_Origin[0], _3D_Origin[1], _3D_Origin[2]+300), rot_vec, trans_vec, cam_matrix, dist_matrix)
     
-    zero2D = np.zeros((2,), dtype=int)
-    cv2.line(image, zero2D, np.array([VbaseX[0][0][0] , VbaseX[0][0][1]], dtype=int), red, 3)
-    cv2.line(image, zero2D, np.array([VbaseY[0][0][0] , VbaseY[0][0][1]], dtype=int), green, 3)
-    cv2.line(image, zero2D, np.array([VbaseZ[0][0][0] , VbaseZ[0][0][1]], dtype=int), blue, 3)
+    cv2.line(image, np.array([_2D_Origin[0] , _2D_Origin[1]], dtype=int), np.array([VbaseX[0][0][0] , VbaseX[0][0][1]], dtype=int), red, 3)
+    cv2.line(image, np.array([_2D_Origin[0] , _2D_Origin[1]], dtype=int), np.array([VbaseY[0][0][0] , VbaseY[0][0][1]], dtype=int), green, 3)
+    cv2.line(image, np.array([_2D_Origin[0] , _2D_Origin[1]], dtype=int), np.array([VbaseZ[0][0][0] , VbaseZ[0][0][1]], dtype=int), blue, 3)

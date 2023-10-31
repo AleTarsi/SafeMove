@@ -21,8 +21,8 @@ drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
 firstFigure = Gui()
             
-path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_0.mp4'
-cap = cv2.VideoCapture(0) # 0 for webcam
+path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_05.mp4'
+cap = cv2.VideoCapture(path) # 0 for webcam
 speed=5
 
 while cap.isOpened():
@@ -66,7 +66,6 @@ while cap.isOpened():
                 
 
         # Get the 3D Coordinates   
-
         face_3d.append([0, 0, 0]);          # Nose tip
         face_3d.append([225, 170, -135]);   # Left eye left corner
         face_3d.append([-225, 170, -135]);  # Right eye right corner
@@ -107,6 +106,11 @@ while cap.isOpened():
         cv2.line(image, p1, p2, (255, 0, 0), 3)
         
         ImageCoordinateFrame(image)
+        
+        _3Dorigin = np.array([face_3d[0][0], face_3d[0][1], face_3d[0][2]])
+        _2Dorigin = np.array([nose_2d[0], nose_2d[1]], dtype=int)
+        
+        _3DCoordinateFrame(image, _2Dorigin ,_3Dorigin, rot_vec, trans_vec, cam_matrix, dist_matrix)
                 
         Rmat,_ = cv2.Rodrigues(rot_vec)
         angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(Rmat) # this function implements the results written in the paper RotationMatrixToRollPitchYaw
@@ -120,23 +124,25 @@ while cap.isOpened():
         cv2.putText(image, f'pitch: {np.round(angles[1],1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
         
 
-    end = time.time()
-    totalTime = end - start
+        end = time.time()
+        totalTime = end - start
 
-    try:
-        fps = (1 / totalTime)*speed
-    except:
-        fps= -1
+        try:
+            fps = (1 / totalTime)*speed
+        except:
+            fps= -1
 
-    cv2.putText(image, f'FPS: {int(fps)}', (20,450), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
+        cv2.putText(image, f'FPS: {int(fps)}', (20,450), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
 
-    # Render detections
-    mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
-                            mp_drawing.DrawingSpec(color=(245,117,66), thickness=2, circle_radius=2), 
-                            mp_drawing.DrawingSpec(color=(245,66,230), thickness=2, circle_radius=2) 
-                            )
+        # Render detections
+        mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
+                                mp_drawing.DrawingSpec(color=(245,117,66), thickness=2, circle_radius=2), 
+                                mp_drawing.DrawingSpec(color=(245,66,230), thickness=2, circle_radius=2) 
+                                )
 
-    cv2.imshow('Head Pose Estimation', image)
+        # cv2.imshow('Head Pose Estimation', image)
+        
+        firstFigure.draw3D(results.pose_world_landmarks)
 
     if cv2.waitKey(5) & 0xFF == 27:
         break

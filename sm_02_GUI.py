@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
 import numpy as np
+from sm_00_utils import computeMidPosition
 
 class Gui:
     def __init__(self):
@@ -10,7 +11,7 @@ class Gui:
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111, aspect='equal', autoscale_on=False,
                              xlim=(-2.5, 2.5), ylim=(-2.5, 2.5),projection='3d')
-        
+                
         self.ax.grid(visible=True, which='both')
         
         
@@ -23,6 +24,11 @@ class Gui:
             landmark_point.append([landmark.visibility, (landmark.x, landmark.y, landmark.z)])
             
         self.ax.cla()
+        
+        self.ax.plot([0,0.5], [0,0],zs=[0,0], color="red")
+        self.ax.plot([0,0], [0,0.5],zs=[0,0], color="green")
+        self.ax.plot([0,0], [0,0],zs=[0,0.5], color="blue")
+        
         self.ax.set_xlim3d(-1, 1)
         self.ax.set_ylim3d(-1, 1)
         self.ax.set_zlim3d(-1, 1)
