@@ -161,6 +161,7 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             cv2.putText(image, f'pitch: {np.round(angles[1],1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
             
             res.error_list.loc[len(res.error_list.index)] = [count * period_btw_frames, myRollWrap(angles[0]), angles[1] , 3, 4] # index gives us the # of row present in the dataframe, we are writing in a new row the new value of the fields
+            print(res.error_list)
             
             end = time.time()
             totalTime = end - start
