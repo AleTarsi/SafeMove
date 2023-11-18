@@ -26,8 +26,8 @@ class Gui:
         self.ax.cla()
         
         self.ax.plot([0,0.5], [0,0],zs=[0,0], color="red")
-        self.ax.plot([0,0], [0,0.5],zs=[0,0], color="green")
-        self.ax.plot([0,0], [0,0],zs=[0,0.5], color="blue")
+        self.ax.plot([0,0], [0,0],zs=[0,0.5], color="green")
+        self.ax.plot([0,0], [0,-0.5],zs=[0,0], color="blue")
         
         self.ax.set_xlim3d(-1, 1)
         self.ax.set_ylim3d(-1, 1)
@@ -111,20 +111,58 @@ class Gui:
         plt.pause(.001)
 
         return
+    
+    def DrawTrunk(self,trunk_point):
+        '''
+        Pass points after the conversion [x,y,z] becomes [x,z,-y]
+        '''
+        self.ax.cla()
+        
+        self.ax.plot([0,0.5], [0,0],zs=[0,0], color="red")
+        self.ax.plot([0,0], [0,0],zs=[0,0.5], color="green")
+        self.ax.plot([0,0], [0,-0.5],zs=[0,0], color="blue")
+        
+        self.ax.set_xlim3d(-1, 1)
+        self.ax.set_ylim3d(-1, 1)
+        self.ax.set_zlim3d(-1, 1)
+        
+        colors_list = list(mcolors.TABLEAU_COLORS)       
+        # trunk
+        trunk_x, trunk_y, trunk_z, color = [], [], [], []
+        for index, point in enumerate(trunk_point):
+            trunk_x.append(point[0])
+            trunk_y.append(point[1])
+            trunk_z.append(point[2])
+            color.append(colors_list[index])
+        self.ax.scatter(trunk_x, trunk_y, trunk_z, c=colors_list[index])
+        plt.pause(.001)
+        
+    def BodyReferenceFrame(self, xaxis, yaxis):
+        zaxis = np.cross(xaxis,yaxis)
+        print(xaxis)
+        print(yaxis)
+        print(zaxis)
 
         
     def Draw3DFace(self,face_point):
-        
+        '''
+        Pass points after the conversion [x,y,z] becomes [x,z,-y]
+        '''
         self.ax.cla()
+        
+        self.ax.set_xlim3d(-0.5, 0.5)
+        self.ax.set_ylim3d(-1, -0.5)
+        self.ax.set_zlim3d(0, 1)
         
         colors_list = list(mcolors.TABLEAU_COLORS)       
         # face
-        face_x, face_y, face_z = [], [], []
+        face_x, face_y, face_z, color = [], [], [], []
         for index, point in enumerate(face_point):
             face_x.append(point[0])
             face_y.append(point[1])
             face_z.append(point[2])
-            self.ax.scatter(point[0], point[1], point[2], c=colors_list[index])
+            color.append(colors_list[index])
+        self.ax.scatter(face_x, face_y, face_z, c=colors_list[index])
             
         plt.pause(.001)
          

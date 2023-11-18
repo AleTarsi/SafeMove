@@ -42,6 +42,8 @@ class PoseLandmark():
   LEFT_FOOT_INDEX = 31
   RIGHT_FOOT_INDEX = 32
   
+def fromWorldLandmark2nparray(worldLandMark):
+    return np.array([worldLandMark.x, worldLandMark.z, worldLandMark.y*(-1)])
   
 def computeMidPosition(A,B, Lambda = 0.5):
     

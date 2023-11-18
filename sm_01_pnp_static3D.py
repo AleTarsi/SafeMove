@@ -3,7 +3,7 @@ import mediapipe as mp
 import numpy as np
 import time
 from sm_02_GUI import Gui
-from sm_00_utils import ComputeAngle, ImageCoordinateFrame, _3DCoordinateFrame, myRollWrap, computeMidPosition,  PoseLandmark
+from sm_00_utils import ComputeAngle, ImageCoordinateFrame, _3DCoordinateFrame, myRollWrap, computeMidPosition, fromWorldLandmark2nparray, PoseLandmark
 from sm_03_camera_calibration import camera_calibration
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
@@ -24,7 +24,7 @@ firstFigure = Gui() # Change figure parameter to increase the sieze of the video
 
             
 path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_06.mp4'
-cap = cv2.VideoCapture(path) # 0 for webcam
+cap = cv2.VideoCapture(0) # 0 for webcam
 
 
 frames_to_skip = 1
@@ -77,31 +77,46 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
                     
                     if idx == 0:
                         nose_2d = (lm.x*img_w, lm.y*img_h)
-                        nose_3d = (world_lm.x, world_lm.y, world_lm.z)
                     
                     # Get the 2D Coordinates
                     face_2d.append([lm.x*img_w, lm.y*img_h])
-                
+                    
+                if idx == PoseLandmark.NOSE:
+                    nose = fromWorldLandmark2nparray(world_lm)
+                if idx == PoseLandmark.LEFT_EYE_OUTER:
+                    leftEyeOuter = fromWorldLandmark2nparray(world_lm)
+                if idx == PoseLandmark.RIGHT_EYE_OUTER:
+                    rightEyeOuter = fromWorldLandmark2nparray(world_lm)
+                if idx == PoseLandmark.LEFT_EAR:
+                    leftEar = fromWorldLandmark2nparray(world_lm)
+                if idx == PoseLandmark.RIGHT_EAR:
+                    rightEar = fromWorldLandmark2nparray(world_lm)
+                if idx == PoseLandmark.MOUTH_LEFT:
+                    leftMouth = fromWorldLandmark2nparray(world_lm)
+                if idx == PoseLandmark.MOUTH_RIGHT:
+                    rightMouth = fromWorldLandmark2nparray(world_lm)
+                    
                 if idx == PoseLandmark.LEFT_HIP:
-                    leftHip = np.array([world_lm.x, world_lm.y, world_lm.z])
+                    leftHip = fromWorldLandmark2nparray(world_lm)
                 if idx == PoseLandmark.RIGHT_HIP:
-                    rightHip = np.array([world_lm.x, world_lm.y, world_lm.z])
+                    rightHip = fromWorldLandmark2nparray(world_lm)
                     try:
                         Hip = computeMidPosition(leftHip,rightHip)[0]
                     except:
                         print("Some problems computing Hip pose")
                         
                 if idx == PoseLandmark.LEFT_SHOULDER:
-                    leftShoulder = np.array([world_lm.x, world_lm.y, world_lm.z])
+                    leftShoulder = fromWorldLandmark2nparray(world_lm)
                 if idx == PoseLandmark.RIGHT_SHOULDER:
-                    rightSchoulder = np.array([world_lm.x, world_lm.y, world_lm.z])
+                    rightSchoulder = fromWorldLandmark2nparray(world_lm)
                     try:
-                        Shoulder = computeMidPosition(leftShoulder,rightSchoulder)[0]
+                        Chest = computeMidPosition(leftShoulder,rightSchoulder)[0]
                     except:
                         print("Some problems computing Schoulder pose")
-                        
+                                                
             ###########################################################################
-
+            firstFigure.DrawTrunk(trunk_point=[Chest,Hip,leftHip,rightHip])
+            firstFigure.BodyReferenceFrame(xaxis=leftHip)
             # Get the 3D Coordinates   
             face_3d.append([0, 0, 0]);          # Nose tip
             face_3d.append([225, 170, -135]);   # Left eye left corner
@@ -153,14 +168,14 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(Rmat) # this function implements the results written in the paper RotationMatrixToRollPitchYaw
             
                     
-            print('x: ',  myRollWrap(angles[0])) 
-            print('y: ',  angles[1]) 
-            print('z: ',  angles[2]) 
+            # print('x: ',  myRollWrap(angles[0])) 
+            # print('y: ',  angles[1]) 
+            # print('z: ',  angles[2]) 
             
             cv2.putText(image, f'roll: {np.round(myRollWrap(angles[0]),1)}', (20,370), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
             cv2.putText(image, f'pitch: {np.round(angles[1],1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
             
-            res.error_list.loc[len(res.error_list.index)] = [count * period_btw_frames, myRollWrap(angles[0]), angles[1] , 3, 4] # index gives us the # of row present in the dataframe, we are writing in a new row the new value of the fields
+            res.error_list.loc[len(res.error_list.index)] = [count*period_btw_frames, angles[1], myRollWrap(angles[0]), angles[2],5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24] # index gives us the # of row present in the dataframe, we are writing in a new row the new value of the fields
             print(res.error_list)
             
             end = time.time()
@@ -181,7 +196,7 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
 
             cv2.imshow('Head Pose Estimation', image)
             
-            firstFigure.draw3D(results.pose_world_landmarks)
+            # firstFigure.draw3D(results.pose_world_landmarks)
 
         if cv2.waitKey(5) & 0xFF == 27:
             break
