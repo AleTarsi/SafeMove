@@ -159,7 +159,7 @@ class Gui:
         
         return body_xaxis, body_yaxis, body_zaxis
     
-    def ChestReferenceFrame(self, left_shoulder_line, chest):
+    def ChestReferenceFrame(self, left_shoulder_point, chest):
         '''
         We define a reference frame fixed to the hip and rotating based on the body orientation
         '''
@@ -168,20 +168,20 @@ class Gui:
         world_zaxis = np.array([0,-0.5,0])
         origin = np.array([0,0,0])
         
-        # left_shoulder_line[2] = chest[2] # We set to the chest level the component pointing up (world_yaxis)
-        shoulder_xaxis = 0.5 * (left_shoulder_line-chest)/np.linalg.norm(left_shoulder_line-chest)
+        # left_shoulder_point[2] = chest[2] # We set to the chest level the component pointing up (world_yaxis)
+        shoulder_xaxis = 0.5 * (left_shoulder_point-chest)/np.linalg.norm(left_shoulder_point-chest)
         self.ax.plot([chest[0],shoulder_xaxis[0]+chest[0]], [chest[1],shoulder_xaxis[1]+chest[1]],zs=[chest[2],shoulder_xaxis[2]+chest[2]], color="red")
         
         shoulder_yaxis = 0.5 * (chest - origin)/np.linalg.norm(chest - origin)
         
         self.ax.plot([chest[0],shoulder_yaxis[0]+chest[0]], [chest[1],shoulder_yaxis[1]+chest[1]],zs=[chest[2],shoulder_yaxis[2]+chest[2]], color="green")
         
-        shoulder_zaxis = np.cross(shoulder_xaxis,shoulder_yaxis)
-        z_dir = 0.5 * (shoulder_zaxis)/np.linalg.norm(shoulder_zaxis)
-        self.ax.plot([chest[0],z_dir[0]+chest[0]], [chest[1],z_dir[1]+chest[1]],zs=[chest[2],z_dir[2]+chest[2]], color="blue")
+        z_dir = np.cross(shoulder_xaxis,shoulder_yaxis)
+        shoulder_zaxis = 0.5 * (z_dir)/np.linalg.norm(z_dir)
+        self.ax.plot([chest[0],shoulder_zaxis[0]+chest[0]], [chest[1],shoulder_zaxis[1]+chest[1]],zs=[chest[2],shoulder_zaxis[2]+chest[2]], color="blue")
         plt.pause(.001)
         
-        return shoulder_xaxis #, body_yaxis, body_zaxis
+        return shoulder_xaxis, shoulder_yaxis, shoulder_zaxis
 
         
     def Draw3DFace(self,face_point):
