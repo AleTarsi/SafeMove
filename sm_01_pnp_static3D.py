@@ -68,55 +68,70 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
         face_3d = []
         face_2d = []
 
+        ############################ Extraction Phase  ####################################      
         if results.pose_landmarks:
             
-            ### CREATE A BLOCK WITH THE FOLLOWING FOR BLOCK ###
-            for idx, lm in enumerate(results.pose_landmarks.landmark):
-                world_lm = results.pose_world_landmarks.landmark[idx]
-                if idx == PoseLandmark.NOSE or idx == PoseLandmark.LEFT_EYE_OUTER or idx == PoseLandmark.RIGHT_EYE_OUTER or idx == PoseLandmark.LEFT_EAR or idx == PoseLandmark.RIGHT_EAR or idx == PoseLandmark.MOUTH_LEFT or idx == PoseLandmark.MOUTH_RIGHT:
+            landmarks = results.pose_landmarks.landmark
+            world_landmarks = results.pose_world_landmarks.landmark                    
+            
+            idx = PoseLandmark.NOSE
+            nose_2d = (landmarks[idx].x*img_w, landmarks[idx].y*img_h)
+            nose = fromWorldLandmark2nparray(world_landmarks[idx])
+            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            
+            idx = PoseLandmark.LEFT_EYE_OUTER
+            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            leftEyeOuter = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            idx = PoseLandmark.RIGHT_EYE_OUTER 
+            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            rightEyeOuter = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+            idx = PoseLandmark.LEFT_EAR
+            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            leftEar = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            idx = PoseLandmark.RIGHT_EAR
+            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            rightEar = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            idx = PoseLandmark.MOUTH_LEFT
+            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            leftMouth = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            idx = PoseLandmark.MOUTH_RIGHT
+            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            rightMouth = fromWorldLandmark2nparray(world_landmarks[idx])
                     
-                    if idx == 0:
-                        nose_2d = (lm.x*img_w, lm.y*img_h)
+            idx = PoseLandmark.LEFT_HIP
+            leftHip = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            idx = PoseLandmark.RIGHT_HIP
+            rightHip = fromWorldLandmark2nparray(world_landmarks[idx])
+            try:
+                Hip = computeMidPosition(leftHip,rightHip)[0]
+            except:
+                print("Some problems computing Hip pose")
                     
-                    # Get the 2D Coordinates
-                    face_2d.append([lm.x*img_w, lm.y*img_h])
-                    
-                if idx == PoseLandmark.NOSE:
-                    nose = fromWorldLandmark2nparray(world_lm)
-                if idx == PoseLandmark.LEFT_EYE_OUTER:
-                    leftEyeOuter = fromWorldLandmark2nparray(world_lm)
-                if idx == PoseLandmark.RIGHT_EYE_OUTER:
-                    rightEyeOuter = fromWorldLandmark2nparray(world_lm)
-                if idx == PoseLandmark.LEFT_EAR:
-                    leftEar = fromWorldLandmark2nparray(world_lm)
-                if idx == PoseLandmark.RIGHT_EAR:
-                    rightEar = fromWorldLandmark2nparray(world_lm)
-                if idx == PoseLandmark.MOUTH_LEFT:
-                    leftMouth = fromWorldLandmark2nparray(world_lm)
-                if idx == PoseLandmark.MOUTH_RIGHT:
-                    rightMouth = fromWorldLandmark2nparray(world_lm)
-                    
-                if idx == PoseLandmark.LEFT_HIP:
-                    leftHip = fromWorldLandmark2nparray(world_lm)
-                if idx == PoseLandmark.RIGHT_HIP:
-                    rightHip = fromWorldLandmark2nparray(world_lm)
-                    try:
-                        Hip = computeMidPosition(leftHip,rightHip)[0]
-                    except:
-                        print("Some problems computing Hip pose")
-                        
-                if idx == PoseLandmark.LEFT_SHOULDER:
-                    leftShoulder = fromWorldLandmark2nparray(world_lm)
-                if idx == PoseLandmark.RIGHT_SHOULDER:
-                    rightSchoulder = fromWorldLandmark2nparray(world_lm)
-                    try:
-                        Chest = computeMidPosition(leftShoulder,rightSchoulder)[0]
-                    except:
-                        print("Some problems computing Schoulder pose")
+            idx = PoseLandmark.LEFT_SHOULDER
+            leftShoulder = fromWorldLandmark2nparray(world_landmarks[idx])
+            idx = PoseLandmark.RIGHT_SHOULDER
+            rightSchoulder = fromWorldLandmark2nparray(world_landmarks[idx])
+            try:
+                Chest = computeMidPosition(leftShoulder,rightSchoulder)[0]
+            except:
+                print("Some problems computing Schoulder pose")
                                                 
-            ###########################################################################
+            ##############################################################################      
+
             firstFigure.DrawTrunk(trunk_point=[Chest,Hip,leftHip,rightHip])
-            firstFigure.BodyReferenceFrame(body_xaxis=leftHip)
+            body_xaxis, body_yaxis, body_zaxis = firstFigure.BodyReferenceFrame(left_hip_line = leftHip)
+        
+            # chest_xaxis, chest_yaxis, chest_zaxis = firstFigure.ChestReferenceFrame(left_shoulder_line=leftShoulder, chest=Chest)
+            chest_xaxis = firstFigure.ChestReferenceFrame(left_shoulder_line=leftShoulder, chest=Chest)
+            
+            # chest_LR, chest_FB, chest_Rot = computeChestAngle(Chest, leftShoulder, rightSchoulder)
+            
             # Get the 3D Coordinates   
             face_3d.append([0, 0, 0]);          # Nose tip
             face_3d.append([225, 170, -135]);   # Left eye left corner

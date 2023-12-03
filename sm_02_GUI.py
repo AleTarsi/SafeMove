@@ -134,9 +134,9 @@ class Gui:
             trunk_y.append(point[1])
             trunk_z.append(point[2])
             color.append(colors_list[index])
-        self.ax.scatter(trunk_x, trunk_y, trunk_z, c=colors_list[index])
+        self.ax.scatter(trunk_x, trunk_y, trunk_z, c=color)
         
-    def BodyReferenceFrame(self, body_xaxis):
+    def BodyReferenceFrame(self, left_hip_line):
         '''
         We define a reference frame fixed to the hip and rotating based on the body orientation
         '''
@@ -144,30 +144,44 @@ class Gui:
         world_yaxis = np.array([0,0,0.5])
         world_zaxis = np.array([0,-0.5,0])
         
-        x_dir = 0.5 * (body_xaxis)/np.linalg.norm(body_xaxis)
-        self.ax.plot([0,x_dir[0]], [0,x_dir[1]],zs=[0,x_dir[2]], color="red")
+        left_hip_line[2] = 0 # We set to zero the component pointing up (world_yaxis)
+        body_xaxis = 0.5 * (left_hip_line)/np.linalg.norm(left_hip_line)
+        self.ax.plot([0,body_xaxis[0]], [0,body_xaxis[1]],zs=[0,body_xaxis[2]], color="red")
         
-        '''As the cross product is not commutative, and we want y pointing up, we should verify the rotation of the hip, whether has a positive or negative y-rotation, to this end we define the plane selection'''
-        try:
-            plance_selection = np.dot(body_xaxis,world_zaxis) # rotating along y brings vector x to overlap with z and we use this to define the plane selection
-        except:
-            print("error on the computation of plane_selection")
+        body_yaxis = world_yaxis
+        if 0: # not really used as it is coincident with the world reference frame
+            self.ax.plot([0,body_yaxis[0]], [0,body_yaxis[1]],zs=[0,body_yaxis[2]], color="green")
         
-        if plance_selection == 0:
-            body_yaxis = world_yaxis 
-        elif plance_selection > 0: 
-            body_yaxis = np.cross(body_xaxis,world_xaxis) 
-        else:
-            body_yaxis = np.cross(world_xaxis,body_xaxis) 
-              
-        y_dir = 0.5 * (body_yaxis)/np.linalg.norm(body_yaxis)
-        self.ax.plot([0,y_dir[0]], [0,y_dir[1]],zs=[0,y_dir[2]], color="green")
-        
-        body_zaxis = np.cross(body_xaxis,body_yaxis)
+        body_zaxis = np.cross(left_hip_line,world_yaxis)
         z_dir = 0.5 * (body_zaxis)/np.linalg.norm(body_zaxis)
         self.ax.plot([0,z_dir[0]], [0,z_dir[1]],zs=[0,z_dir[2]], color="blue")
+        # plt.pause(.001)
+        
+        return body_xaxis, body_yaxis, body_zaxis
+    
+    def ChestReferenceFrame(self, left_shoulder_line, chest):
+        '''
+        We define a reference frame fixed to the hip and rotating based on the body orientation
+        '''
+        world_xaxis = np.array([0.5,0,0])
+        world_yaxis = np.array([0,0,0.5])
+        world_zaxis = np.array([0,-0.5,0])
+        origin = np.array([0,0,0])
+        
+        # left_shoulder_line[2] = chest[2] # We set to the chest level the component pointing up (world_yaxis)
+        shoulder_xaxis = 0.5 * (left_shoulder_line-chest)/np.linalg.norm(left_shoulder_line-chest)
+        self.ax.plot([chest[0],shoulder_xaxis[0]+chest[0]], [chest[1],shoulder_xaxis[1]+chest[1]],zs=[chest[2],shoulder_xaxis[2]+chest[2]], color="red")
+        
+        shoulder_yaxis = 0.5 * (chest - origin)/np.linalg.norm(chest - origin)
+        
+        self.ax.plot([chest[0],shoulder_yaxis[0]+chest[0]], [chest[1],shoulder_yaxis[1]+chest[1]],zs=[chest[2],shoulder_yaxis[2]+chest[2]], color="green")
+        
+        shoulder_zaxis = np.cross(shoulder_xaxis,shoulder_yaxis)
+        z_dir = 0.5 * (shoulder_zaxis)/np.linalg.norm(shoulder_zaxis)
+        self.ax.plot([chest[0],z_dir[0]+chest[0]], [chest[1],z_dir[1]+chest[1]],zs=[chest[2],z_dir[2]+chest[2]], color="blue")
         plt.pause(.001)
         
+        return shoulder_xaxis #, body_yaxis, body_zaxis
 
         
     def Draw3DFace(self,face_point):
