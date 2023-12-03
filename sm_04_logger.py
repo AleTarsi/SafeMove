@@ -28,7 +28,7 @@ class Result:
                              'L.elbow.flexion.UD [°]': [],
                              'L.elbow.rotation.PS [°]': [],
                              'R.wrist.flexion.UD [°]': [],
-                             'R.wrist.rotation.UR [°]': [],
+                             'R.wrist.rotation.UR [°]': [], 
                              'L.wrist.flexion.UD [°]': [],
                              'L.wrist.rotation.UR [°]': [],
                              'R.knee.flexion.UD [°]': [],

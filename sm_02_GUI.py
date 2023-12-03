@@ -135,13 +135,39 @@ class Gui:
             trunk_z.append(point[2])
             color.append(colors_list[index])
         self.ax.scatter(trunk_x, trunk_y, trunk_z, c=colors_list[index])
+        
+    def BodyReferenceFrame(self, body_xaxis):
+        '''
+        We define a reference frame fixed to the hip and rotating based on the body orientation
+        '''
+        world_xaxis = np.array([0.5,0,0])
+        world_yaxis = np.array([0,0,0.5])
+        world_zaxis = np.array([0,-0.5,0])
+        
+        x_dir = 0.5 * (body_xaxis)/np.linalg.norm(body_xaxis)
+        self.ax.plot([0,x_dir[0]], [0,x_dir[1]],zs=[0,x_dir[2]], color="red")
+        
+        '''As the cross product is not commutative, and we want y pointing up, we should verify the rotation of the hip, whether has a positive or negative y-rotation, to this end we define the plane selection'''
+        try:
+            plance_selection = np.dot(body_xaxis,world_zaxis) # rotating along y brings vector x to overlap with z and we use this to define the plane selection
+        except:
+            print("error on the computation of plane_selection")
+        
+        if plance_selection == 0:
+            body_yaxis = world_yaxis 
+        elif plance_selection > 0: 
+            body_yaxis = np.cross(body_xaxis,world_xaxis) 
+        else:
+            body_yaxis = np.cross(world_xaxis,body_xaxis) 
+              
+        y_dir = 0.5 * (body_yaxis)/np.linalg.norm(body_yaxis)
+        self.ax.plot([0,y_dir[0]], [0,y_dir[1]],zs=[0,y_dir[2]], color="green")
+        
+        body_zaxis = np.cross(body_xaxis,body_yaxis)
+        z_dir = 0.5 * (body_zaxis)/np.linalg.norm(body_zaxis)
+        self.ax.plot([0,z_dir[0]], [0,z_dir[1]],zs=[0,z_dir[2]], color="blue")
         plt.pause(.001)
         
-    def BodyReferenceFrame(self, xaxis, yaxis):
-        zaxis = np.cross(xaxis,yaxis)
-        print(xaxis)
-        print(yaxis)
-        print(zaxis)
 
         
     def Draw3DFace(self,face_point):

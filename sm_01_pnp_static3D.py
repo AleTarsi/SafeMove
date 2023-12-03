@@ -23,8 +23,8 @@ drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 firstFigure = Gui() # Change figure parameter to increase the sieze of the video's window
 
             
-path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_06.mp4'
-cap = cv2.VideoCapture(0) # 0 for webcam
+path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_05.mp4'
+cap = cv2.VideoCapture(path) # 0 for webcam
 
 
 frames_to_skip = 1
@@ -116,7 +116,7 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
                                                 
             ###########################################################################
             firstFigure.DrawTrunk(trunk_point=[Chest,Hip,leftHip,rightHip])
-            firstFigure.BodyReferenceFrame(xaxis=leftHip)
+            firstFigure.BodyReferenceFrame(body_xaxis=leftHip)
             # Get the 3D Coordinates   
             face_3d.append([0, 0, 0]);          # Nose tip
             face_3d.append([225, 170, -135]);   # Left eye left corner
@@ -125,7 +125,7 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             face_3d.append([-340, 0, -270]);    # Right ear
             face_3d.append([150, -150, -125]);  # Left Mouth corner
             face_3d.append([-150, -150, -125]);  # Right Mouth corner
-                    
+            
             # Convert it to the NumPy array
             face_2d = np.array(face_2d, dtype=np.float64)
 
