@@ -23,11 +23,10 @@ class Gui:
         for index, landmark in enumerate(landmarks.landmark):
             landmark_point.append([landmark.visibility, (landmark.x, landmark.y, landmark.z)])
             
-        self.ax.cla()
         
         self.ax.plot([0,0.5], [0,0],zs=[0,0], color="red")
-        self.ax.plot([0,0], [0,0.5],zs=[0,0], color="green")
-        self.ax.plot([0,0], [0,0],zs=[0,0.5], color="blue")
+        self.ax.plot([0,0], [0,0],zs=[0,0.5], color="green")
+        self.ax.plot([0,0], [0,-0.5],zs=[0,0], color="blue")
         
         self.ax.set_xlim3d(-1, 1)
         self.ax.set_ylim3d(-1, 1)
@@ -108,23 +107,86 @@ class Gui:
         if extraPoint is not False:
             self.ax.plot(np.linspace(face_x[0],extraPoint[0],10),np.linspace(face_y[0],extraPoint[1],10),np.linspace(face_z[0],extraPoint[2],10))
             
-        plt.pause(.001)
-
         return
-
+    
+    def DrawTrunk(self,trunk_point):
+        '''
+        Pass points after the conversion [x,y,z] becomes [x,z,-y]
+        '''
+        
+        self.ax.plot([0,0.5], [0,0],zs=[0,0], color="red")
+        self.ax.plot([0,0], [0,0],zs=[0,0.5], color="green")
+        self.ax.plot([0,0], [0,-0.5],zs=[0,0], color="blue")
+        
+        colors_list = list(mcolors.TABLEAU_COLORS)       
+        # trunk
+        trunk_x, trunk_y, trunk_z, color = [], [], [], []
+        for index, point in enumerate(trunk_point):
+            trunk_x.append(point[0])
+            trunk_y.append(point[1])
+            trunk_z.append(point[2])
+            color.append(colors_list[index])
+        self.ax.scatter(trunk_x, trunk_y, trunk_z, c=color)
+        
+    def BodyReferenceFrame(self, body_xaxis, body_yaxis, body_zaxis):
+        '''
+        We plot a reference frame fixed to the hip and rotating based on the body orientation
+        '''
+              
+        self.ax.plot([0,body_xaxis[0]], [0,body_xaxis[1]],zs=[0,body_xaxis[2]], color="red")
+        
+        if 0: # not really used as it is coincident with the world reference frame
+            self.ax.plot([0,body_yaxis[0]], [0,body_yaxis[1]],zs=[0,body_yaxis[2]], color="green")
+        
+        self.ax.plot([0,body_zaxis[0]], [0,body_zaxis[1]],zs=[0,body_zaxis[2]], color="blue")
+        # plt.pause(.001)
+        
+    
+    def ChestReferenceFrame(self, chest_xaxis, chest_yaxis, chest_zaxis, chest):
+        '''
+        We define a reference frame fixed to the hip and rotating based on the body orientation
+        '''
+        
+        self.ax.plot([chest[0],chest_xaxis[0]+chest[0]], [chest[1],chest_xaxis[1]+chest[1]],zs=[chest[2],chest_xaxis[2]+chest[2]], color="red")
+        
+        self.ax.plot([chest[0],chest_yaxis[0]+chest[0]], [chest[1],chest_yaxis[1]+chest[1]],zs=[chest[2],chest_yaxis[2]+chest[2]], color="green")
+        
+        self.ax.plot([chest[0],chest_zaxis[0]+chest[0]], [chest[1],chest_zaxis[1]+chest[1]],zs=[chest[2],chest_zaxis[2]+chest[2]], color="blue")
+    
+    def RshoulderAxes(self, chest_xaxis, chest_yaxis, chest_zaxis, rightShoulder):
+        self.ax.plot([rightShoulder[0],chest_xaxis[0]+rightShoulder[0]], [rightShoulder[1],chest_xaxis[1]+rightShoulder[1]],zs=[rightShoulder[2],chest_xaxis[2]+rightShoulder[2]], color="red")
+        
+        self.ax.plot([rightShoulder[0],chest_yaxis[0]+rightShoulder[0]], [rightShoulder[1],chest_yaxis[1]+rightShoulder[1]],zs=[rightShoulder[2],chest_yaxis[2]+rightShoulder[2]], color="green")
+        
+        self.ax.plot([rightShoulder[0],chest_zaxis[0]+rightShoulder[0]], [rightShoulder[1],chest_zaxis[1]+rightShoulder[1]],zs=[rightShoulder[2],chest_zaxis[2]+rightShoulder[2]], color="blue")
+        
+    def LshoulderAxes(self, chest_xaxis, chest_yaxis, chest_zaxis, leftShoulder):
+        self.ax.plot([leftShoulder[0],chest_xaxis[0]+leftShoulder[0]], [leftShoulder[1],chest_xaxis[1]+leftShoulder[1]],zs=[leftShoulder[2],chest_xaxis[2]+leftShoulder[2]], color="red")
+        
+        self.ax.plot([leftShoulder[0],chest_yaxis[0]+leftShoulder[0]], [leftShoulder[1],chest_yaxis[1]+leftShoulder[1]],zs=[leftShoulder[2],chest_yaxis[2]+leftShoulder[2]], color="green")
+        
+        self.ax.plot([leftShoulder[0],chest_zaxis[0]+leftShoulder[0]], [leftShoulder[1],chest_zaxis[1]+leftShoulder[1]],zs=[leftShoulder[2],chest_zaxis[2]+leftShoulder[2]], color="blue")
+        
         
     def Draw3DFace(self,face_point):
-        
+        '''
+        Pass points after the conversion [x,y,z] becomes [x,z,-y]
+        '''
         self.ax.cla()
+        
+        self.ax.set_xlim3d(-0.5, 0.5)
+        self.ax.set_ylim3d(-1, -0.5)
+        self.ax.set_zlim3d(0, 1)
         
         colors_list = list(mcolors.TABLEAU_COLORS)       
         # face
-        face_x, face_y, face_z = [], [], []
+        face_x, face_y, face_z, color = [], [], [], []
         for index, point in enumerate(face_point):
             face_x.append(point[0])
             face_y.append(point[1])
             face_z.append(point[2])
-            self.ax.scatter(point[0], point[1], point[2], c=colors_list[index])
+            color.append(colors_list[index])
+        self.ax.scatter(face_x, face_y, face_z, c=colors_list[index])
             
         plt.pause(.001)
          
@@ -137,4 +199,9 @@ class Gui:
         self.ax2.plot(np.linspace(0,vect[0],10), np.linspace(0,vect[1],10), np.linspace(0,vect[2],10), c='red')
         
         plt.pause(.001)
+        
+    def DrawElbowLine(self,rightShoulder,rightElbow,leftShoulder,leftElbow):
+        self.ax.plot([rightShoulder[0],rightElbow[0]], [rightShoulder[1],rightElbow[1]],zs=[rightShoulder[2],rightElbow[2]], color="orange")
+        self.ax.plot([leftShoulder[0],leftElbow[0]], [leftShoulder[1],leftElbow[1]],zs=[leftShoulder[2],leftElbow[2]], color="orange")
+        
 
