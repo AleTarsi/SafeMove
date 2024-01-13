@@ -3,6 +3,7 @@ import mediapipe as mp
 import numpy as np
 import time
 from sm_02_GUI import Gui
+from sm_05_computation import Computation
 from sm_00_utils import ComputeAngle, ImageCoordinateFrame, _3DCoordinateFrame, myRollWrap, computeMidPosition, fromWorldLandmark2nparray, PoseLandmark
 from sm_03_camera_calibration import camera_calibration
 import matplotlib.pyplot as plt
@@ -21,10 +22,10 @@ mp_drawing = mp.solutions.drawing_utils
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
 firstFigure = Gui() # Change figure parameter to increase the sieze of the video's window
-
+angleDetective = Computation()
             
-path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_03.mpg'
-cap = cv2.VideoCapture(0) # 0 for webcam
+path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_05.mp4'
+cap = cv2.VideoCapture(path) # 0 for webcam
 
 
 frames_to_skip = 1
@@ -35,8 +36,8 @@ res = Result(source_video=path)
 
 count = 0 
 
-print(period_btw_frames)
-print(range(frames_to_skip))
+# print(period_btw_frames)
+# print(range(frames_to_skip))
 
 with mp_pose.Pose() as pose: # very important for the sake of computation efficiency, not sure why though.
     while cap.isOpened():
@@ -116,25 +117,39 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             idx = PoseLandmark.LEFT_SHOULDER
             leftShoulder = fromWorldLandmark2nparray(world_landmarks[idx])
             idx = PoseLandmark.RIGHT_SHOULDER
-            rightSchoulder = fromWorldLandmark2nparray(world_landmarks[idx])
+            rightShoulder = fromWorldLandmark2nparray(world_landmarks[idx])
             try:
-                Chest = computeMidPosition(leftShoulder,rightSchoulder)[0]
+                '''
+                Observations: It seems that the point describing the chest tends to be leaned even when the person is standing straight 
+                '''
+                Chest = computeMidPosition(leftShoulder,rightShoulder)[0]
             except:
-                print("Some problems computing Schoulder pose")
+                print("Some problems computing Shoulder pose")
+            
+            idx = PoseLandmark.RIGHT_ELBOW
+            rightElbow = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            idx = PoseLandmark.LEFT_ELBOW
+            leftElbow = fromWorldLandmark2nparray(world_landmarks[idx])
                                                 
             ##############################################################################      
-
-            firstFigure.DrawTrunk(trunk_point=[Chest,Hip,leftHip,rightHip])
-            body_xaxis, body_yaxis, body_zaxis = firstFigure.BodyReferenceFrame(left_hip_line = leftHip)
-            chest_xaxis, chest_yaxis, chest_zaxis = firstFigure.ChestReferenceFrame(left_shoulder_point=leftShoulder, chest=Chest)
+            firstFigure.ax.cla()
+            firstFigure.ax.set_xlim3d(-1, 1)
+            firstFigure.ax.set_ylim3d(-1, 1)
+            firstFigure.ax.set_zlim3d(-1, 1)
             
-            if np.cross(chest_xaxis,body_xaxis)[2]>= 0: # if the cross product points upward 
-                sign_LR = 1
-            else:
-                sign_LR = -1
-            chest_LR = sign_LR * np.rad2deg(np.arccos(np.dot(body_xaxis,chest_xaxis)/(np.linalg.norm(body_xaxis)*np.linalg.norm(chest_xaxis))))
-            chest_FB = np.rad2deg(np.arccos(np.dot(body_zaxis,chest_zaxis)/(np.linalg.norm(body_zaxis)*np.linalg.norm(chest_zaxis))))
-            chest_Rot = np.rad2deg(np.arcsin(np.dot(body_xaxis,chest_yaxis)/(np.linalg.norm(body_xaxis)*np.linalg.norm(chest_yaxis))))
+            waist_xaxis, waist_yaxis, waist_zaxis = angleDetective.BodyAxes(leftHip = leftHip)
+            # firstFigure.BodyReferenceFrame(waist_xaxis, waist_yaxis, waist_zaxis)
+            
+            chest_xaxis, chest_yaxis, chest_zaxis = angleDetective.BackAxes(left_shoulder_point=leftShoulder, chest=Chest)
+            # firstFigure.ChestReferenceFrame(chest_xaxis, chest_yaxis, chest_zaxis, chest=Chest)
+            # firstFigure.DrawTrunk(trunk_point=[Chest,Hip,leftHip,rightHip])
+            
+            chest_LR, chest_FB, chest_Rot = angleDetective.BackAngles(waist_xaxis, waist_yaxis, waist_zaxis, chest_xaxis, chest_yaxis, chest_zaxis)
+            
+            rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW = angleDetective.ShoulderAngles(rightShoulder,rightElbow,leftShoulder,leftElbow,chest_zaxis, chest_xaxis)
+            # firstFigure.DrawElbowLine(rightShoulder,rightElbow,leftShoulder,leftElbow)
+            
             
             # Get the 3D Coordinates   
             face_3d.append([0, 0, 0]);          # Nose tip
@@ -191,9 +206,9 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             # print('y: ',  angles[1]) 
             # print('z: ',  angles[2]) 
             
-            cv2.putText(image, f'chest_LR: {np.round(chest_LR,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
-            cv2.putText(image, f'chest_FB: {np.round(chest_FB,1)}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
-            cv2.putText(image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
+            cv2.putText(image, f'flexion_FB: {np.round(ls_flexion_FB,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            cv2.putText(image, f'CCWCW: {np.round(ls_abduction_CCWCW,1)}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            # cv2.putText(image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
 
             
             res.error_list.loc[len(res.error_list.index)] = [count*period_btw_frames, angles[1], myRollWrap(angles[0]), angles[2],chest_LR,chest_FB,chest_Rot,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24] # index gives us the # of row present in the dataframe, we are writing in a new row the new value of the fields
@@ -218,6 +233,9 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             cv2.imshow('Head Pose Estimation', image)
             
             # firstFigure.draw3D(results.pose_world_landmarks)
+            
+            
+            plt.pause(.001)
 
         if cv2.waitKey(5) & 0xFF == 27:
             break
