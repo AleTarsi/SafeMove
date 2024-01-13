@@ -56,11 +56,53 @@ class Computation:
         ls: left shoulder
         '''
         rightElbowLine = rightElbow - rightShoulder # line connecting the elbow and the shoulder centered in zero, remember that also chest_*axis is centered in zero
+        # chest_zaxis points forward, i.e. the direction of the forehead
         rs_flexion_FB = np.rad2deg(np.arcsin(np.dot(rightElbowLine,chest_zaxis)/(np.linalg.norm(rightElbowLine)*np.linalg.norm(chest_zaxis))))
         rs_abduction_CWCCW = np.rad2deg(np.arcsin(np.dot(rightElbowLine,-chest_xaxis)/(np.linalg.norm(rightElbowLine)*np.linalg.norm(chest_xaxis))))
         
         leftElbowLine = leftElbow - leftShoulder
+        # chest_zaxis points forward, i.e. the direction of the forehead
         ls_flexion_FB = np.rad2deg(np.arcsin(np.dot(leftElbowLine,chest_zaxis)/(np.linalg.norm(leftElbowLine)*np.linalg.norm(chest_zaxis))))
         ls_abduction_CCWCW = np.rad2deg(np.arcsin(np.dot(leftElbowLine,chest_xaxis)/(np.linalg.norm(leftElbowLine)*np.linalg.norm(chest_xaxis))))
         
         return rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW
+    
+    def ElbowAngles(self, rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist):
+        '''
+        re: right elbow
+        le: left elbow
+        '''
+        rightWristLine = rightWrist - rightElbow # line connecting the elbow and the wrist centered in zero
+        rightElbowLine = rightElbow - rightShoulder # line connecting the shoulder and the elbow centered in zero
+        re_flexion = np.rad2deg(np.arccos(np.dot(rightWristLine,rightElbowLine)/(np.linalg.norm(rightWristLine)*np.linalg.norm(rightElbowLine))))
+        
+        leftWristLine = leftWrist - leftElbow # line connecting the elbow and the wrist centered in zero
+        leftElbowLine = leftElbow - leftShoulder # line connecting the elbow and the shoulder centered in zero
+        le_flexion = np.rad2deg(np.arccos(np.dot(leftWristLine,leftElbowLine)/(np.linalg.norm(leftWristLine)*np.linalg.norm(leftElbowLine))))
+        
+        return re_flexion, le_flexion
+    
+    def WristAngles(self, rightElbow, rightWrist, rightHand, leftElbow, leftWrist, leftHand):
+        '''
+        rw: right wrist
+        lw: left wrist
+        Observation: Here you cannot use the arccosine wrt a line going further the writst as you can twist your wrist laterally and UD, you need to use arcsin with a line poining up your wrist
+        '''
+        
+        '''
+        1- compute the elbow line as the line connecting wrist and elbow
+        2- compute the lateral direction using the line connecting the index to the pinky finger
+        3- Compute the third direction as the one pointing up and starting from the wrist.
+        4- Use that direction to compute the wrist UD angle
+        '''
+        # rightHandLine = rightHand - rightWrist # line connecting the wrist and the hand centered in zero
+        # rightWristLine = rightWrist - rightElbow # line connecting the elbow and the wrist centered in zero
+        # rw_flexion_UD = np.rad2deg(np.arccos(np.dot(rightWristLine,rightHandLine)/(np.linalg.norm(rightWristLine)*np.linalg.norm(rightHandLine))))
+        
+        # leftHandLine = leftHand - leftWrist # line connecting the wrist and the hand centered in zero
+        # leftWristLine = leftWrist - leftElbow # line connecting the elbow and the shoulder centered in zero
+        # lw_flexion_UD = np.rad2deg(np.arccos(np.dot(leftWristLine,leftHandLine)/(np.linalg.norm(leftWristLine)*np.linalg.norm(leftHandLine))))
+        
+        # return rw_flexion_UD, lw_flexion_UD
+        
+        pass

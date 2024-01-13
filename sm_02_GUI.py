@@ -200,8 +200,19 @@ class Gui:
         
         plt.pause(.001)
         
+    '''
+    Those three functions can be compacted into one as they do essentially the same
+    '''
+        
     def DrawElbowLine(self,rightShoulder,rightElbow,leftShoulder,leftElbow):
         self.ax.plot([rightShoulder[0],rightElbow[0]], [rightShoulder[1],rightElbow[1]],zs=[rightShoulder[2],rightElbow[2]], color="orange")
         self.ax.plot([leftShoulder[0],leftElbow[0]], [leftShoulder[1],leftElbow[1]],zs=[leftShoulder[2],leftElbow[2]], color="orange")
         
-
+    def DrawWristLine(self, rightWrist,rightElbow,leftWrist,leftElbow):
+        self.ax.plot([rightElbow[0], rightWrist[0]], [rightElbow[1], rightWrist[1]],zs=[rightElbow[2], rightWrist[2]], color="purple")
+        self.ax.plot([leftElbow[0], leftWrist[0]], [leftElbow[1], leftWrist[1]],zs=[leftElbow[2], leftWrist[2]], color="purple")
+        
+    def DrawHandLine(self, rightWrist,rightHand,leftWrist,leftHand):
+        self.ax.plot([rightWrist[0], rightHand[0]], [rightWrist[1], rightHand[1]],zs=[rightWrist[2], rightHand[2]], color="red")
+        self.ax.plot([leftWrist[0],leftHand[0]], [leftWrist[1],leftHand[1]],zs=[leftWrist[2],leftHand[2]], color="red")
+        
