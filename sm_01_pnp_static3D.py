@@ -131,6 +131,12 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             
             idx = PoseLandmark.LEFT_ELBOW
             leftElbow = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            idx = PoseLandmark.RIGHT_WRIST
+            rightWrist = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            idx = PoseLandmark.LEFT_WRIST
+            leftWrist = fromWorldLandmark2nparray(world_landmarks[idx])
                                                 
             ##############################################################################      
             firstFigure.ax.cla()
