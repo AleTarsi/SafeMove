@@ -143,3 +143,6 @@ def _3DCoordinateFrame(image, _2D_Origin, _3D_Origin, rot_vec, trans_vec, cam_ma
     cv2.line(image, np.array([_2D_Origin[0] , _2D_Origin[1]], dtype=int), np.array([VbaseX[0][0][0] , VbaseX[0][0][1]], dtype=int), red, 3)
     cv2.line(image, np.array([_2D_Origin[0] , _2D_Origin[1]], dtype=int), np.array([VbaseY[0][0][0] , VbaseY[0][0][1]], dtype=int), green, 3)
     cv2.line(image, np.array([_2D_Origin[0] , _2D_Origin[1]], dtype=int), np.array([VbaseZ[0][0][0] , VbaseZ[0][0][1]], dtype=int), blue, 3)
+    
+def normalize(vect):
+    return vect/np.linalg.norm(vect)

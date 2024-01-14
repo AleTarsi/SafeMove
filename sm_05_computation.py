@@ -1,4 +1,5 @@
 import numpy as np
+from sm_00_utils import normalize
 
 
 class Computation:
@@ -82,7 +83,7 @@ class Computation:
         
         return re_flexion, le_flexion
     
-    def WristAngles(self, rightElbow, rightWrist, rightHand, leftElbow, leftWrist, leftHand):
+    def WristAngles(self, rightElbow, rightWrist, rightHand, rightIndex, rightPinky, leftElbow, leftWrist, leftHand, leftIndex, leftPinky):
         '''
         rw: right wrist
         lw: left wrist
@@ -93,16 +94,21 @@ class Computation:
         1- compute the elbow line as the line connecting wrist and elbow
         2- compute the lateral direction using the line connecting the index to the pinky finger
         3- Compute the third direction as the one pointing up and starting from the wrist.
-        4- Use that direction to compute the wrist UD angle
+        4- Use that orthogonal direction to compute the wrist UD angle. As the line
         '''
-        # rightHandLine = rightHand - rightWrist # line connecting the wrist and the hand centered in zero
-        # rightWristLine = rightWrist - rightElbow # line connecting the elbow and the wrist centered in zero
-        # rw_flexion_UD = np.rad2deg(np.arccos(np.dot(rightWristLine,rightHandLine)/(np.linalg.norm(rightWristLine)*np.linalg.norm(rightHandLine))))
         
-        # leftHandLine = leftHand - leftWrist # line connecting the wrist and the hand centered in zero
-        # leftWristLine = leftWrist - leftElbow # line connecting the elbow and the shoulder centered in zero
-        # lw_flexion_UD = np.rad2deg(np.arccos(np.dot(leftWristLine,leftHandLine)/(np.linalg.norm(leftWristLine)*np.linalg.norm(leftHandLine))))
+        rightHandLine = normalize(rightHand - rightWrist) # line connecting the wrist and the hand centered in zero
+        rightWristLine = normalize(rightWrist - rightElbow) # line connecting the elbow and the wrist centered in zero
+        rightPalmLine = normalize(rightIndex - rightPinky) # line connecting the pinky and the index centered in zero
+        rightOrthogonalPalmLine = normalize(np.cross(rightWristLine, rightPalmLine))
+        rw_flexion_UD = np.rad2deg(np.arcsin(np.dot(rightHandLine,rightOrthogonalPalmLine)/(np.linalg.norm(rightHandLine)*np.linalg.norm(rightOrthogonalPalmLine))))
         
-        # return rw_flexion_UD, lw_flexion_UD
+        leftHandLine = normalize(leftHand - leftWrist) # line connecting the wrist and the hand centered in zero
+        leftWristLine = normalize(leftWrist - leftElbow) # line connecting the elbow and the shoulder centered in zero
+        leftPalmLine = normalize(leftIndex - leftPinky)
+        leftOrthogonalPalmLine = normalize(np.cross(leftWristLine, -leftPalmLine))
+        lw_flexion_UD = np.rad2deg(np.arcsin(np.dot(leftHandLine,leftOrthogonalPalmLine)/(np.linalg.norm(leftHandLine)*np.linalg.norm(leftOrthogonalPalmLine))))
+        
+        return rw_flexion_UD, lw_flexion_UD, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine
         
         pass

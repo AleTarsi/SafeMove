@@ -166,23 +166,24 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             firstFigure.ax.set_zlim3d(-1, 1)
             
             waist_xaxis, waist_yaxis, waist_zaxis = angleDetective.BodyAxes(leftHip = leftHip)
-            firstFigure.BodyReferenceFrame(waist_xaxis, waist_yaxis, waist_zaxis)
+            # firstFigure.BodyReferenceFrame(waist_xaxis, waist_yaxis, waist_zaxis)
             
             chest_xaxis, chest_yaxis, chest_zaxis = angleDetective.BackAxes(left_shoulder_point=leftShoulder, chest=Chest)
-            firstFigure.ChestReferenceFrame(chest_xaxis, chest_yaxis, chest_zaxis, chest=Chest)
-            firstFigure.DrawTrunk(trunk_point=[Chest,Hip,leftHip,rightHip])
+            # firstFigure.ChestReferenceFrame(chest_xaxis, chest_yaxis, chest_zaxis, chest=Chest)
+            # firstFigure.DrawTrunk(trunk_point=[Chest,Hip,leftHip,rightHip])
             
             chest_LR, chest_FB, chest_Rot = angleDetective.BackAngles(waist_xaxis, waist_yaxis, waist_zaxis, chest_xaxis, chest_yaxis, chest_zaxis)
             
             rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW = angleDetective.ShoulderAngles(rightShoulder,rightElbow,leftShoulder,leftElbow,chest_zaxis, chest_xaxis)
-            firstFigure.DrawElbowLine(rightShoulder,rightElbow,leftShoulder,leftElbow)
+            # firstFigure.DrawElbowLine(rightShoulder,rightElbow,leftShoulder,leftElbow)
             
             re_flexion, le_flexion = angleDetective.ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist)
             firstFigure.DrawWristLine(rightWrist,rightElbow,leftWrist,leftElbow)
             
-            # rw_flexion_UD, lw_flexion_UD = angleDetective.WristAngles(rightElbow, rightWrist, rightHand, leftElbow, leftWrist, leftHand)
+            rw_flexion_UD, lw_flexion_UD, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = angleDetective.WristAngles(rightElbow, rightWrist, rightHand, rightIndex, rightPinky, leftElbow, leftWrist, leftHand, leftIndex, leftPinky)
             firstFigure.DrawHandLine(rightWrist,rightHand,leftWrist,leftHand)
-            
+            firstFigure.DrawHandaxes(leftWrist,leftWristLine,leftPalmLine,leftOrthogonalPalmLine)
+            firstFigure.DrawHandaxes(rightWrist,rightWristLine,rightPalmLine,rightOrthogonalPalmLine)        
             
             # Get the 3D Coordinates   
             face_3d.append([0, 0, 0]);          # Nose tip
@@ -239,8 +240,8 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             # print('y: ',  angles[1]) 
             # print('z: ',  angles[2]) 
             
-            cv2.putText(image, f're_flexion: {np.round(re_flexion,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
-            cv2.putText(image, f'le_flexion: {np.round(le_flexion,1)}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            cv2.putText(image, f'rw_flexion_UD: {np.round(rw_flexion_UD,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            cv2.putText(image, f'lw_flexion_UD: {np.round(lw_flexion_UD,1)}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
             # cv2.putText(image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
 
             
@@ -265,7 +266,7 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
 
             cv2.imshow('Head Pose Estimation', image)
             
-            # firstFigure.draw3D(results.pose_world_landmarks)
+            firstFigure.draw3D(results.pose_world_landmarks)
             
             
             
