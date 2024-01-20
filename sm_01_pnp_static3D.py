@@ -137,6 +137,39 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             
             idx = PoseLandmark.LEFT_WRIST
             leftWrist = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            idx = PoseLandmark.RIGHT_PINKY
+            rightPinky = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            idx = PoseLandmark.RIGHT_INDEX
+            rightIndex = fromWorldLandmark2nparray(world_landmarks[idx])
+            try:
+                rightHand = computeMidPosition(rightPinky,rightIndex)[0]
+            except:
+                print("Some problems computing R. Hand pose")
+            
+            idx = PoseLandmark.LEFT_PINKY
+            leftPinky = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            idx = PoseLandmark.LEFT_INDEX
+            leftIndex = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            try:
+                leftHand = computeMidPosition(leftPinky,leftIndex)[0]
+            except:
+                print("Some problems computing L. Hand pose")
+                
+            idx = PoseLandmark.LEFT_KNEE
+            leftKnee = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            idx = PoseLandmark.RIGHT_KNEE
+            rightKnee = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            idx = PoseLandmark.LEFT_ANKLE
+            leftAnkle = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            idx = PoseLandmark.RIGHT_ANKLE
+            rightAnkle = fromWorldLandmark2nparray(world_landmarks[idx])
                                                 
             ##############################################################################      
             firstFigure.ax.cla()
@@ -156,6 +189,17 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW = angleDetective.ShoulderAngles(rightShoulder,rightElbow,leftShoulder,leftElbow,chest_zaxis, chest_xaxis)
             # firstFigure.DrawElbowLine(rightShoulder,rightElbow,leftShoulder,leftElbow)
             
+            re_flexion, le_flexion = angleDetective.ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist)
+            # firstFigure.DrawWristLine(rightWrist,rightElbow,leftWrist,leftElbow)
+            
+            rw_flexion_UD, lw_flexion_UD, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = angleDetective.WristAngles(rightElbow, rightWrist, rightHand, rightIndex, rightPinky, leftElbow, leftWrist, leftHand, leftIndex, leftPinky)
+            # firstFigure.DrawHandLine(rightWrist,rightHand,leftWrist,leftHand)
+            # firstFigure.DrawHandaxes(leftWrist,leftWristLine,leftPalmLine,leftOrthogonalPalmLine)
+            # firstFigure.DrawHandaxes(rightWrist,rightWristLine,rightPalmLine,rightOrthogonalPalmLine)        
+            
+            rk_flexion, lk_flexion = angleDetective.KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle)
+            # firstFigure.DrawKneeLine(rightKnee, leftKnee, rightHip, leftHip)
+            # firstFigure.DrawFootLine(rightKnee, leftKnee, rightAnkle, leftAnkle)
             
             # Get the 3D Coordinates   
             face_3d.append([0, 0, 0]);          # Nose tip
@@ -207,17 +251,13 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             Rmat,_ = cv2.Rodrigues(rot_vec)
             angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(Rmat) # this function implements the results written in the paper RotationMatrixToRollPitchYaw
             
-                    
-            # print('x: ',  myRollWrap(angles[0])) 
-            # print('y: ',  angles[1]) 
-            # print('z: ',  angles[2]) 
             
-            cv2.putText(image, f'flexion_FB: {np.round(ls_flexion_FB,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
-            cv2.putText(image, f'CCWCW: {np.round(ls_abduction_CCWCW,1)}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            cv2.putText(image, f'rk_flexion: {np.round(rk_flexion,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            cv2.putText(image, f'lk_flexion: {np.round(lk_flexion,1)}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
             # cv2.putText(image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
 
             
-            res.error_list.loc[len(res.error_list.index)] = [count*period_btw_frames, angles[1], myRollWrap(angles[0]), angles[2],chest_LR,chest_FB,chest_Rot,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24] # index gives us the # of row present in the dataframe, we are writing in a new row the new value of the fields
+            res.error_list.loc[len(res.error_list.index)] = [count*period_btw_frames, angles[1], myRollWrap(angles[0]), angles[2],chest_LR,chest_FB,chest_Rot,rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW,re_flexion,13,le_flexion,15,rw_flexion_UD, 17,lw_flexion_UD,19, rk_flexion, lk_flexion,22,23,24] # index gives us the # of row present in the dataframe, we are writing in a new row the new value of the fields
             # print(res.error_list)
             
             end = time.time()
@@ -238,7 +278,8 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
 
             cv2.imshow('Head Pose Estimation', image)
             
-            # firstFigure.draw3D(results.pose_world_landmarks)
+            firstFigure.draw3D(results.pose_world_landmarks)
+            
             
             
             plt.pause(.001)

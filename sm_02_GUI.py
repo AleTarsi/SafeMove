@@ -200,8 +200,31 @@ class Gui:
         
         plt.pause(.001)
         
+    '''
+    Those three functions can be compacted into one as they do essentially the same
+    '''
+        
     def DrawElbowLine(self,rightShoulder,rightElbow,leftShoulder,leftElbow):
         self.ax.plot([rightShoulder[0],rightElbow[0]], [rightShoulder[1],rightElbow[1]],zs=[rightShoulder[2],rightElbow[2]], color="orange")
         self.ax.plot([leftShoulder[0],leftElbow[0]], [leftShoulder[1],leftElbow[1]],zs=[leftShoulder[2],leftElbow[2]], color="orange")
         
+    def DrawWristLine(self, rightWrist,rightElbow,leftWrist,leftElbow):
+        self.ax.plot([rightElbow[0], rightWrist[0]], [rightElbow[1], rightWrist[1]],zs=[rightElbow[2], rightWrist[2]], color="purple")
+        self.ax.plot([leftElbow[0], leftWrist[0]], [leftElbow[1], leftWrist[1]],zs=[leftElbow[2], leftWrist[2]], color="purple")
+        
+    def DrawHandLine(self, rightWrist,rightHand,leftWrist,leftHand):
+        self.ax.plot([rightWrist[0], rightHand[0]], [rightWrist[1], rightHand[1]],zs=[rightWrist[2], rightHand[2]], color="red")
+        self.ax.plot([leftWrist[0],leftHand[0]], [leftWrist[1],leftHand[1]],zs=[leftWrist[2],leftHand[2]], color="red")
+    
+    def DrawHandaxes(self, origin, x_axis, y_axis, z_axis):
+        self.ax.plot([origin[0],x_axis[0]+origin[0]], [origin[1],x_axis[1]+origin[1]],zs=[origin[2],x_axis[2]+origin[2]], color="red")
+        self.ax.plot([origin[0],y_axis[0]+origin[0]], [origin[1],y_axis[1]+origin[1]],zs=[origin[2],y_axis[2]+origin[2]], color="green")
+        self.ax.plot([origin[0],z_axis[0]+origin[0]], [origin[1],z_axis[1]+origin[1]],zs=[origin[2],z_axis[2]+origin[2]], color="blue")
 
+    def DrawKneeLine(self, rightKnee, leftKnee, rightHip, leftHip):
+        self.ax.plot([rightHip[0], rightKnee[0]], [rightHip[1], rightKnee[1]],zs=[rightHip[2], rightKnee[2]], color="green")
+        self.ax.plot([leftHip[0], leftKnee[0]], [leftHip[1], leftKnee[1]],zs=[leftHip[2], leftKnee[2]], color="green")
+        
+    def DrawFootLine(self, rightKnee, leftKnee, rightAnkle, leftAnkle):
+        self.ax.plot([rightKnee[0], rightAnkle[0]], [rightKnee[1], rightAnkle[1]],zs=[rightKnee[2], rightAnkle[2]], color="blue")
+        self.ax.plot([leftKnee[0], leftAnkle[0]], [leftKnee[1], leftAnkle[1]],zs=[leftKnee[2], leftAnkle[2]], color="blue")
