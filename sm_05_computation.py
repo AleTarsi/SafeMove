@@ -112,3 +112,22 @@ class Computation:
         return rw_flexion_UD, lw_flexion_UD, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine
         
         pass
+
+    def KneeAngles(self, rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle):
+        '''
+        rk: right knee
+        lk: left knee
+        
+        1- compute the knee line as the line connecting the hip and the knee
+        2- compute the feet line as the line connecting the knee and the foot
+        3- compute the angle in btw this two lines
+        '''
+        leftkneeLine = leftHip - leftKnee
+        leftFeetLine = leftKnee - leftAnkle
+        lk_flexion = np.rad2deg(np.arccos(np.dot(leftkneeLine,leftFeetLine)/(np.linalg.norm(leftkneeLine)*np.linalg.norm(leftFeetLine))))
+        
+        rightkneeLine = rightHip - rightKnee
+        rightFeetLine = rightKnee - rightAnkle
+        rk_flexion = np.rad2deg(np.arccos(np.dot(rightkneeLine,rightFeetLine)/(np.linalg.norm(rightkneeLine)*np.linalg.norm(rightFeetLine))))
+        
+        return rk_flexion, lk_flexion

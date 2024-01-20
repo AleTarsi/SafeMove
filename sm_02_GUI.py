@@ -220,3 +220,11 @@ class Gui:
         self.ax.plot([origin[0],x_axis[0]+origin[0]], [origin[1],x_axis[1]+origin[1]],zs=[origin[2],x_axis[2]+origin[2]], color="red")
         self.ax.plot([origin[0],y_axis[0]+origin[0]], [origin[1],y_axis[1]+origin[1]],zs=[origin[2],y_axis[2]+origin[2]], color="green")
         self.ax.plot([origin[0],z_axis[0]+origin[0]], [origin[1],z_axis[1]+origin[1]],zs=[origin[2],z_axis[2]+origin[2]], color="blue")
+
+    def DrawKneeLine(self, rightKnee, leftKnee, rightHip, leftHip):
+        self.ax.plot([rightHip[0], rightKnee[0]], [rightHip[1], rightKnee[1]],zs=[rightHip[2], rightKnee[2]], color="green")
+        self.ax.plot([leftHip[0], leftKnee[0]], [leftHip[1], leftKnee[1]],zs=[leftHip[2], leftKnee[2]], color="green")
+        
+    def DrawFootLine(self, rightKnee, leftKnee, rightAnkle, leftAnkle):
+        self.ax.plot([rightKnee[0], rightAnkle[0]], [rightKnee[1], rightAnkle[1]],zs=[rightKnee[2], rightAnkle[2]], color="blue")
+        self.ax.plot([leftKnee[0], leftAnkle[0]], [leftKnee[1], leftAnkle[1]],zs=[leftKnee[2], leftAnkle[2]], color="blue")
