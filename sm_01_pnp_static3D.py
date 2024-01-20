@@ -24,7 +24,7 @@ drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 firstFigure = Gui() # Change figure parameter to increase the sieze of the video's window
 angleDetective = Computation()
             
-path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_05.mp4'
+path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_12.mp4'
 cap = cv2.VideoCapture(path) # 0 for webcam
 
 
@@ -171,7 +171,7 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             idx = PoseLandmark.RIGHT_ANKLE
             rightAnkle = fromWorldLandmark2nparray(world_landmarks[idx])
                                                 
-            ##############################################################################      
+            ###########################   Angle computation Phase and subPlots ###########################################      
             firstFigure.ax.cla()
             firstFigure.ax.set_xlim3d(-1, 1)
             firstFigure.ax.set_ylim3d(-1, 1)
@@ -200,6 +200,42 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             rk_flexion, lk_flexion = angleDetective.KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle)
             # firstFigure.DrawKneeLine(rightKnee, leftKnee, rightHip, leftHip)
             # firstFigure.DrawFootLine(rightKnee, leftKnee, rightAnkle, leftAnkle)
+            
+            ############################### Computation of number of Contact points ###########################################
+            
+            '''
+            1- Verify whether the knee angles' difference is over a certain threshold as first check
+            2- Verify whether the lateral position of the pelvis are outside a certain threshold as second check
+            3- From these two checks determine the number of contact points
+            '''
+            
+            #Point 1
+            knee_threshold = 15
+            contact_points = 2
+            
+            if (rk_flexion - lk_flexion) >= knee_threshold:
+                contact_points = 1
+                
+            '''
+            Point 2 
+            - it'd be sufficient to compute the position of the central point of the pelvis wrt the line connecting the feet 
+            - Project the Hip point onto the line connecting the feet, it should be 0.5 the value when the pelvis is in centered 
+            
+            Idea: compute the projection line as described in https://en.wikibooks.org/wiki/Linear_Algebra/Orthogonal_Projection_Onto_a_Line
+            '''
+            
+            InitialPoint = rightAnkle
+            FinalPoint = leftAnkle
+            foot2footLine = FinalPoint - InitialPoint
+            Origin2footLine = Hip - InitialPoint
+            ProjectionLine = np.dot(Origin2footLine,foot2footLine)/np.dot(foot2footLine,foot2footLine)*foot2footLine
+            
+            firstFigure.ax.plot([0, foot2footLine[0]], [0, foot2footLine[1]],zs=[0, foot2footLine[2]], color="orange")
+            firstFigure.ax.plot([0, ProjectionLine[0]], [0, ProjectionLine[1]],zs=[0, ProjectionLine[2]], color="black")
+            # This value should be btw 0 and 1
+            baricenterValue = np.linalg.norm(ProjectionLine)/np.linalg.norm(foot2footLine)
+            
+            ##################################################################################################################
             
             # Get the 3D Coordinates   
             face_3d.append([0, 0, 0]);          # Nose tip
@@ -252,8 +288,8 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(Rmat) # this function implements the results written in the paper RotationMatrixToRollPitchYaw
             
             
-            cv2.putText(image, f'rk_flexion: {np.round(rk_flexion,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
-            cv2.putText(image, f'lk_flexion: {np.round(lk_flexion,1)}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            cv2.putText(image, f't: {np.round(baricenterValue,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            # cv2.putText(image, f'lk_flexion: {np.round(lk_flexion,1)}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
             # cv2.putText(image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
 
             
@@ -278,7 +314,7 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
 
             cv2.imshow('Head Pose Estimation', image)
             
-            firstFigure.draw3D(results.pose_world_landmarks)
+            # firstFigure.draw3D(results.pose_world_landmarks)
             
             
             
