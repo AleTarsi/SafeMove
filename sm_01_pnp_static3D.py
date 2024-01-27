@@ -24,7 +24,7 @@ drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 firstFigure = Gui() # Change figure parameter to increase the sieze of the video's window
 angleDetective = Computation()
             
-path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_12.mp4'
+path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_10.mp4'
 cap = cv2.VideoCapture(path) # 0 for webcam
 
 
@@ -35,6 +35,13 @@ period_btw_frames = 1/fps_input_video
 res = Result(source_video=path)
 
 count = 0 
+
+
+######################################## HYPER PARAMETERS ######################################################
+max_baricenter_position = 0.9
+min_baricenter_position = 0.1
+knee_difference_threshold = 0.15
+###############################################################################################################
 
 # print(period_btw_frames)
 # print(range(frames_to_skip))
@@ -210,10 +217,9 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             '''
             
             #Point 1
-            knee_threshold = 15
             contact_points = 2
             
-            if (rk_flexion - lk_flexion) >= knee_threshold:
+            if (rk_flexion - lk_flexion) >= knee_difference_threshold:
                 contact_points = 1
                 
             '''
@@ -226,14 +232,29 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             
             InitialPoint = rightAnkle
             FinalPoint = leftAnkle
+            FinalPoint[2] = InitialPoint[2] # We set the y-cordinate to the same. Look in trello for the contact point computation theory
             foot2footLine = FinalPoint - InitialPoint
-            Origin2footLine = Hip - InitialPoint
+            Origin2footLine = Hip - InitialPoint # Hip seat on the origin
             ProjectionLine = np.dot(Origin2footLine,foot2footLine)/np.dot(foot2footLine,foot2footLine)*foot2footLine
             
-            firstFigure.ax.plot([0, foot2footLine[0]], [0, foot2footLine[1]],zs=[0, foot2footLine[2]], color="orange")
-            firstFigure.ax.plot([0, ProjectionLine[0]], [0, ProjectionLine[1]],zs=[0, ProjectionLine[2]], color="black")
-            # This value should be btw 0 and 1
-            baricenterValue = np.linalg.norm(ProjectionLine)/np.linalg.norm(foot2footLine)
+            # print("\n" + string(Hip) + "\n")
+            # print(np.dot(Origin2footLine,foot2footLine))
+            # firstFigure.ax.plot([InitialPoint[0], FinalPoint[0]], [InitialPoint[1], FinalPoint[1]],zs=[InitialPoint[2], FinalPoint[2]], color="orange")
+            # firstFigure.ax.plot([InitialPoint[0], Origin2footLine[0]], [InitialPoint[1], Origin2footLine[1]],zs=[InitialPoint[2], Origin2footLine[2]], color="black")
+            # firstFigure.ax.plot([InitialPoint[0], InitialPoint[0] + ProjectionLine[0]], [InitialPoint[1], InitialPoint[1] + ProjectionLine[1]],zs=[InitialPoint[2], InitialPoint[2] + ProjectionLine[2]], color="green")
+
+            # firstFigure.ax.plot([0, foot2footLine[0]], [0, foot2footLine[1]],zs=[0, foot2footLine[2]], color="purple")
+            # firstFigure.ax.plot([0, Origin2footLine[0]], [0, Origin2footLine[1]],zs=[0, Origin2footLine[2]], color="brown")
+            
+            # This value should be btw 1 or -1
+            baricenterDirection = np.dot(ProjectionLine,foot2footLine)/(np.linalg.norm(ProjectionLine)*np.linalg.norm(foot2footLine))
+            # print(baricenterDirection)
+            
+            # signed length ration between ProjectionLine and foot2footLine
+            baricenterValue = np.linalg.norm(ProjectionLine)/np.linalg.norm(foot2footLine)*baricenterDirection
+            
+            if baricenterValue < min_baricenter_position or baricenterValue > max_baricenter_position:
+                contact_points = 1
             
             ##################################################################################################################
             
@@ -289,7 +310,7 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             
             
             cv2.putText(image, f't: {np.round(baricenterValue,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
-            # cv2.putText(image, f'lk_flexion: {np.round(lk_flexion,1)}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            cv2.putText(image, f'contact points: {contact_points}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
             # cv2.putText(image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
 
             
@@ -314,7 +335,7 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
 
             cv2.imshow('Head Pose Estimation', image)
             
-            # firstFigure.draw3D(results.pose_world_landmarks)
+            firstFigure.draw3D(results.pose_world_landmarks)
             
             
             
