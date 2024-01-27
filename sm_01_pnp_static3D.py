@@ -25,7 +25,7 @@ firstFigure = Gui() # Change figure parameter to increase the sieze of the video
 angleDetective = Computation()
             
 path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_10.mp4'
-cap = cv2.VideoCapture(path) # 0 for webcam
+cap = cv2.VideoCapture(0) # 0 for webcam
 
 
 frames_to_skip = 1
@@ -40,7 +40,7 @@ count = 0
 ######################################## HYPER PARAMETERS ######################################################
 max_baricenter_position = 0.9
 min_baricenter_position = 0.1
-knee_difference_threshold = 0.15
+max_knee_difference = 20
 ###############################################################################################################
 
 # print(period_btw_frames)
@@ -218,8 +218,8 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             
             #Point 1
             contact_points = 2
-            
-            if (rk_flexion - lk_flexion) >= knee_difference_threshold:
+            knee_difference = abs(rk_flexion - lk_flexion)
+            if knee_difference >= max_knee_difference:
                 contact_points = 1
                 
             '''
@@ -309,7 +309,7 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
             angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(Rmat) # this function implements the results written in the paper RotationMatrixToRollPitchYaw
             
             
-            cv2.putText(image, f't: {np.round(baricenterValue,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            cv2.putText(image, f't: {np.round(knee_difference,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
             cv2.putText(image, f'contact points: {contact_points}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
             # cv2.putText(image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
 
