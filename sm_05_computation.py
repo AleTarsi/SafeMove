@@ -1,5 +1,5 @@
 import numpy as np
-from sm_00_utils import normalize
+from sm_00_utils import normalize, bcolors
 
 
 class Computation:

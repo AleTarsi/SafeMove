@@ -6,6 +6,18 @@ green = (0,255,0)
 blue = (255,0,0)
 
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    
+    
 class PoseLandmark():
   """The 33 pose landmarks."""
   NOSE = 0
@@ -146,3 +158,16 @@ def _3DCoordinateFrame(image, _2D_Origin, _3D_Origin, rot_vec, trans_vec, cam_ma
     
 def normalize(vect):
     return vect/np.linalg.norm(vect)
+
+def from_image_name_2_excel_row_value(file):
+    removingPNGextensions = file[:-4]
+    i = 1
+    while (removingPNGextensions[-(i+1)] != '/' and removingPNGextensions[-(i+1)] != '\\'):
+      i += 1
+    try:
+      string_int = int(removingPNGextensions[-i:])
+      return string_int
+    except ValueError:
+      # Handle the exception
+      print(bcolors.FAIL + 'Failed to convert iamge name into excel row value')
+      return -1

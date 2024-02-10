@@ -24,15 +24,18 @@ drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 firstFigure = Gui() # Change figure parameter to increase the sieze of the video's window
 angleDetective = Computation()
             
-path='C:/Users/aless/OneDrive/Desktop/SafeMove/videos/video_10.mp4'
-cap = cv2.VideoCapture(0) # 0 for webcam
+folder_path = 'C:/Users/aless/OneDrive/Desktop/SafeMove/'
+video = 'video_05'
+
+cap = cv2.VideoCapture(folder_path + "videos/" + video + ".mp4") # 0 for webcam
+# cap = cv2.VideoCapture(0) # 0 for webcam
 
 
 frames_to_skip = 1
 fps_input_video = 30
 period_btw_frames = 1/fps_input_video
 
-res = Result(source_video=path)
+res = Result(folder_path=folder_path, source_video=video)
 
 count = 0 
 
@@ -47,302 +50,307 @@ max_knee_difference = 20
 # print(range(frames_to_skip))
 
 with mp_pose.Pose() as pose: # very important for the sake of computation efficiency, not sure why though.
-    while cap.isOpened():
-        for i in range(frames_to_skip):
-            success, image = cap.read() 
-            if success:
-                count = count + 1    
+    try: 
+        while cap.isOpened():
+            for i in range(frames_to_skip):
+                success, image = cap.read() 
+                if success:
+                    count = count + 1    
 
-        start = time.time()
+            start = time.time()
 
-        # Flip the image horizontally for a later selfie-view display
-        # Also convert the color space from BGR to RGB
-        image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
+            # Flip the image horizontally for a later selfie-view display
+            # Also convert the color space from BGR to RGB
+            image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
 
-        # To improve performance
-        image.flags.writeable = False
-        
-        # Get the result
-        results = pose.process(image)
-        
-        # To improve performance
-        image.flags.writeable = True
-        
-        # Convert the color space from RGB to BGR
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-
-        img_h, img_w, img_c = image.shape
-        
-        face_3d = []
-        face_2d = []
-
-        ############################ Extraction Phase  ####################################      
-        if results.pose_landmarks:
+            # To improve performance
+            image.flags.writeable = False
             
-            landmarks = results.pose_landmarks.landmark
-            world_landmarks = results.pose_world_landmarks.landmark                    
+            # Get the result
+            results = pose.process(image)
             
-            idx = PoseLandmark.NOSE
-            nose_2d = (landmarks[idx].x*img_w, landmarks[idx].y*img_h)
-            nose = fromWorldLandmark2nparray(world_landmarks[idx])
-            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            # To improve performance
+            image.flags.writeable = True
             
-            idx = PoseLandmark.LEFT_EYE_OUTER
-            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
-            leftEyeOuter = fromWorldLandmark2nparray(world_landmarks[idx])
+            # Convert the color space from RGB to BGR
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+            img_h, img_w, img_c = image.shape
             
-            idx = PoseLandmark.RIGHT_EYE_OUTER 
-            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
-            rightEyeOuter = fromWorldLandmark2nparray(world_landmarks[idx])
+            face_3d = []
+            face_2d = []
+
+            ############################ Extraction Phase  ####################################      
+            if results.pose_landmarks:
                 
-            idx = PoseLandmark.LEFT_EAR
-            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
-            leftEar = fromWorldLandmark2nparray(world_landmarks[idx])
-            
-            idx = PoseLandmark.RIGHT_EAR
-            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
-            rightEar = fromWorldLandmark2nparray(world_landmarks[idx])
-            
-            idx = PoseLandmark.MOUTH_LEFT
-            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
-            leftMouth = fromWorldLandmark2nparray(world_landmarks[idx])
-            
-            idx = PoseLandmark.MOUTH_RIGHT
-            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
-            rightMouth = fromWorldLandmark2nparray(world_landmarks[idx])
+                landmarks = results.pose_landmarks.landmark
+                world_landmarks = results.pose_world_landmarks.landmark                    
+                
+                idx = PoseLandmark.NOSE
+                nose_2d = (landmarks[idx].x*img_w, landmarks[idx].y*img_h)
+                nose = fromWorldLandmark2nparray(world_landmarks[idx])
+                face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+                
+                idx = PoseLandmark.LEFT_EYE_OUTER
+                face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+                leftEyeOuter = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                idx = PoseLandmark.RIGHT_EYE_OUTER 
+                face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+                rightEyeOuter = fromWorldLandmark2nparray(world_landmarks[idx])
                     
-            idx = PoseLandmark.LEFT_HIP
-            leftHip = fromWorldLandmark2nparray(world_landmarks[idx])
-            
-            idx = PoseLandmark.RIGHT_HIP
-            rightHip = fromWorldLandmark2nparray(world_landmarks[idx])
-            try:
-                Hip = computeMidPosition(leftHip,rightHip)[0]
-            except:
-                print("Some problems computing Hip pose")
+                idx = PoseLandmark.LEFT_EAR
+                face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+                leftEar = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                idx = PoseLandmark.RIGHT_EAR
+                face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+                rightEar = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                idx = PoseLandmark.MOUTH_LEFT
+                face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+                leftMouth = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                idx = PoseLandmark.MOUTH_RIGHT
+                face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+                rightMouth = fromWorldLandmark2nparray(world_landmarks[idx])
+                        
+                idx = PoseLandmark.LEFT_HIP
+                leftHip = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                idx = PoseLandmark.RIGHT_HIP
+                rightHip = fromWorldLandmark2nparray(world_landmarks[idx])
+                try:
+                    Hip = computeMidPosition(leftHip,rightHip)[0]
+                except:
+                    print("Some problems computing Hip pose")
+                        
+                idx = PoseLandmark.LEFT_SHOULDER
+                leftShoulder = fromWorldLandmark2nparray(world_landmarks[idx])
+                idx = PoseLandmark.RIGHT_SHOULDER
+                rightShoulder = fromWorldLandmark2nparray(world_landmarks[idx])
+                try:
+                    '''
+                    Observations: It seems that the point describing the chest tends to be leaned even when the person is standing straight 
+                    '''
+                    Chest = computeMidPosition(leftShoulder,rightShoulder)[0]
+                except:
+                    print("Some problems computing Shoulder pose")
+                
+                idx = PoseLandmark.RIGHT_ELBOW
+                rightElbow = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                idx = PoseLandmark.LEFT_ELBOW
+                leftElbow = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                idx = PoseLandmark.RIGHT_WRIST
+                rightWrist = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                idx = PoseLandmark.LEFT_WRIST
+                leftWrist = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                idx = PoseLandmark.RIGHT_PINKY
+                rightPinky = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                idx = PoseLandmark.RIGHT_INDEX
+                rightIndex = fromWorldLandmark2nparray(world_landmarks[idx])
+                try:
+                    rightHand = computeMidPosition(rightPinky,rightIndex)[0]
+                except:
+                    print("Some problems computing R. Hand pose")
+                
+                idx = PoseLandmark.LEFT_PINKY
+                leftPinky = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                idx = PoseLandmark.LEFT_INDEX
+                leftIndex = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                try:
+                    leftHand = computeMidPosition(leftPinky,leftIndex)[0]
+                except:
+                    print("Some problems computing L. Hand pose")
                     
-            idx = PoseLandmark.LEFT_SHOULDER
-            leftShoulder = fromWorldLandmark2nparray(world_landmarks[idx])
-            idx = PoseLandmark.RIGHT_SHOULDER
-            rightShoulder = fromWorldLandmark2nparray(world_landmarks[idx])
-            try:
+                idx = PoseLandmark.LEFT_KNEE
+                leftKnee = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                idx = PoseLandmark.RIGHT_KNEE
+                rightKnee = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                idx = PoseLandmark.LEFT_ANKLE
+                leftAnkle = fromWorldLandmark2nparray(world_landmarks[idx])
+                
+                idx = PoseLandmark.RIGHT_ANKLE
+                rightAnkle = fromWorldLandmark2nparray(world_landmarks[idx])
+                                                    
+                ###########################   Angle computation Phase and subPlots ###########################################      
+                firstFigure.ax.cla()
+                firstFigure.ax.set_xlim3d(-1, 1)
+                firstFigure.ax.set_ylim3d(-1, 1)
+                firstFigure.ax.set_zlim3d(-1, 1)
+                
+                waist_xaxis, waist_yaxis, waist_zaxis = angleDetective.BodyAxes(leftHip = leftHip)
+                # firstFigure.BodyReferenceFrame(waist_xaxis, waist_yaxis, waist_zaxis)
+                
+                chest_xaxis, chest_yaxis, chest_zaxis = angleDetective.BackAxes(left_shoulder_point=leftShoulder, chest=Chest)
+                # firstFigure.ChestReferenceFrame(chest_xaxis, chest_yaxis, chest_zaxis, chest=Chest)
+                # firstFigure.DrawTrunk(trunk_point=[Chest,Hip,leftHip,rightHip])
+                
+                chest_LR, chest_FB, chest_Rot = angleDetective.BackAngles(waist_xaxis, waist_yaxis, waist_zaxis, chest_xaxis, chest_yaxis, chest_zaxis)
+                
+                rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW = angleDetective.ShoulderAngles(rightShoulder,rightElbow,leftShoulder,leftElbow,chest_zaxis, chest_xaxis)
+                # firstFigure.DrawElbowLine(rightShoulder,rightElbow,leftShoulder,leftElbow)
+                
+                re_flexion, le_flexion = angleDetective.ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist)
+                # firstFigure.DrawWristLine(rightWrist,rightElbow,leftWrist,leftElbow)
+                
+                rw_flexion_UD, lw_flexion_UD, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = angleDetective.WristAngles(rightElbow, rightWrist, rightHand, rightIndex, rightPinky, leftElbow, leftWrist, leftHand, leftIndex, leftPinky)
+                # firstFigure.DrawHandLine(rightWrist,rightHand,leftWrist,leftHand)
+                # firstFigure.DrawHandaxes(leftWrist,leftWristLine,leftPalmLine,leftOrthogonalPalmLine)
+                # firstFigure.DrawHandaxes(rightWrist,rightWristLine,rightPalmLine,rightOrthogonalPalmLine)        
+                
+                rk_flexion, lk_flexion = angleDetective.KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle)
+                # firstFigure.DrawKneeLine(rightKnee, leftKnee, rightHip, leftHip)
+                # firstFigure.DrawFootLine(rightKnee, leftKnee, rightAnkle, leftAnkle)
+                
+                ############################### Computation of number of Contact points ###########################################
+                
                 '''
-                Observations: It seems that the point describing the chest tends to be leaned even when the person is standing straight 
+                1- Verify whether the knee angles' difference is over a certain threshold as first check
+                2- Verify whether the lateral position of the pelvis are outside a certain threshold as second check
+                3- From these two checks determine the number of contact points
                 '''
-                Chest = computeMidPosition(leftShoulder,rightShoulder)[0]
-            except:
-                print("Some problems computing Shoulder pose")
-            
-            idx = PoseLandmark.RIGHT_ELBOW
-            rightElbow = fromWorldLandmark2nparray(world_landmarks[idx])
-            
-            idx = PoseLandmark.LEFT_ELBOW
-            leftElbow = fromWorldLandmark2nparray(world_landmarks[idx])
-            
-            idx = PoseLandmark.RIGHT_WRIST
-            rightWrist = fromWorldLandmark2nparray(world_landmarks[idx])
-            
-            idx = PoseLandmark.LEFT_WRIST
-            leftWrist = fromWorldLandmark2nparray(world_landmarks[idx])
-            
-            idx = PoseLandmark.RIGHT_PINKY
-            rightPinky = fromWorldLandmark2nparray(world_landmarks[idx])
-            
-            idx = PoseLandmark.RIGHT_INDEX
-            rightIndex = fromWorldLandmark2nparray(world_landmarks[idx])
-            try:
-                rightHand = computeMidPosition(rightPinky,rightIndex)[0]
-            except:
-                print("Some problems computing R. Hand pose")
-            
-            idx = PoseLandmark.LEFT_PINKY
-            leftPinky = fromWorldLandmark2nparray(world_landmarks[idx])
-            
-            idx = PoseLandmark.LEFT_INDEX
-            leftIndex = fromWorldLandmark2nparray(world_landmarks[idx])
-            
-            try:
-                leftHand = computeMidPosition(leftPinky,leftIndex)[0]
-            except:
-                print("Some problems computing L. Hand pose")
                 
-            idx = PoseLandmark.LEFT_KNEE
-            leftKnee = fromWorldLandmark2nparray(world_landmarks[idx])
-            
-            idx = PoseLandmark.RIGHT_KNEE
-            rightKnee = fromWorldLandmark2nparray(world_landmarks[idx])
-            
-            idx = PoseLandmark.LEFT_ANKLE
-            leftAnkle = fromWorldLandmark2nparray(world_landmarks[idx])
-            
-            idx = PoseLandmark.RIGHT_ANKLE
-            rightAnkle = fromWorldLandmark2nparray(world_landmarks[idx])
-                                                
-            ###########################   Angle computation Phase and subPlots ###########################################      
-            firstFigure.ax.cla()
-            firstFigure.ax.set_xlim3d(-1, 1)
-            firstFigure.ax.set_ylim3d(-1, 1)
-            firstFigure.ax.set_zlim3d(-1, 1)
-            
-            waist_xaxis, waist_yaxis, waist_zaxis = angleDetective.BodyAxes(leftHip = leftHip)
-            # firstFigure.BodyReferenceFrame(waist_xaxis, waist_yaxis, waist_zaxis)
-            
-            chest_xaxis, chest_yaxis, chest_zaxis = angleDetective.BackAxes(left_shoulder_point=leftShoulder, chest=Chest)
-            # firstFigure.ChestReferenceFrame(chest_xaxis, chest_yaxis, chest_zaxis, chest=Chest)
-            # firstFigure.DrawTrunk(trunk_point=[Chest,Hip,leftHip,rightHip])
-            
-            chest_LR, chest_FB, chest_Rot = angleDetective.BackAngles(waist_xaxis, waist_yaxis, waist_zaxis, chest_xaxis, chest_yaxis, chest_zaxis)
-            
-            rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW = angleDetective.ShoulderAngles(rightShoulder,rightElbow,leftShoulder,leftElbow,chest_zaxis, chest_xaxis)
-            # firstFigure.DrawElbowLine(rightShoulder,rightElbow,leftShoulder,leftElbow)
-            
-            re_flexion, le_flexion = angleDetective.ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist)
-            # firstFigure.DrawWristLine(rightWrist,rightElbow,leftWrist,leftElbow)
-            
-            rw_flexion_UD, lw_flexion_UD, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = angleDetective.WristAngles(rightElbow, rightWrist, rightHand, rightIndex, rightPinky, leftElbow, leftWrist, leftHand, leftIndex, leftPinky)
-            # firstFigure.DrawHandLine(rightWrist,rightHand,leftWrist,leftHand)
-            # firstFigure.DrawHandaxes(leftWrist,leftWristLine,leftPalmLine,leftOrthogonalPalmLine)
-            # firstFigure.DrawHandaxes(rightWrist,rightWristLine,rightPalmLine,rightOrthogonalPalmLine)        
-            
-            rk_flexion, lk_flexion = angleDetective.KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle)
-            # firstFigure.DrawKneeLine(rightKnee, leftKnee, rightHip, leftHip)
-            # firstFigure.DrawFootLine(rightKnee, leftKnee, rightAnkle, leftAnkle)
-            
-            ############################### Computation of number of Contact points ###########################################
-            
-            '''
-            1- Verify whether the knee angles' difference is over a certain threshold as first check
-            2- Verify whether the lateral position of the pelvis are outside a certain threshold as second check
-            3- From these two checks determine the number of contact points
-            '''
-            
-            #Point 1
-            contact_points = 2
-            knee_difference = abs(rk_flexion - lk_flexion)
-            if knee_difference >= max_knee_difference:
-                contact_points = 1
+                #Point 1
+                contact_points = 2
+                knee_difference = abs(rk_flexion - lk_flexion)
+                if knee_difference >= max_knee_difference:
+                    contact_points = 1
+                    
+                '''
+                Point 2 
+                - it'd be sufficient to compute the position of the central point of the pelvis wrt the line connecting the feet 
+                - Project the Hip point onto the line connecting the feet, it should be 0.5 the value when the pelvis is in centered 
                 
-            '''
-            Point 2 
-            - it'd be sufficient to compute the position of the central point of the pelvis wrt the line connecting the feet 
-            - Project the Hip point onto the line connecting the feet, it should be 0.5 the value when the pelvis is in centered 
-            
-            Idea: compute the projection line as described in https://en.wikibooks.org/wiki/Linear_Algebra/Orthogonal_Projection_Onto_a_Line
-            '''
-            
-            InitialPoint = rightAnkle
-            FinalPoint = leftAnkle
-            FinalPoint[2] = InitialPoint[2] # We set the y-cordinate to the same. Look in trello for the contact point computation theory
-            foot2footLine = FinalPoint - InitialPoint
-            Origin2footLine = Hip - InitialPoint # Hip seat on the origin
-            ProjectionLine = np.dot(Origin2footLine,foot2footLine)/np.dot(foot2footLine,foot2footLine)*foot2footLine
-            
-            # print("\n" + string(Hip) + "\n")
-            # print(np.dot(Origin2footLine,foot2footLine))
-            # firstFigure.ax.plot([InitialPoint[0], FinalPoint[0]], [InitialPoint[1], FinalPoint[1]],zs=[InitialPoint[2], FinalPoint[2]], color="orange")
-            # firstFigure.ax.plot([InitialPoint[0], Origin2footLine[0]], [InitialPoint[1], Origin2footLine[1]],zs=[InitialPoint[2], Origin2footLine[2]], color="black")
-            # firstFigure.ax.plot([InitialPoint[0], InitialPoint[0] + ProjectionLine[0]], [InitialPoint[1], InitialPoint[1] + ProjectionLine[1]],zs=[InitialPoint[2], InitialPoint[2] + ProjectionLine[2]], color="green")
+                Idea: compute the projection line as described in https://en.wikibooks.org/wiki/Linear_Algebra/Orthogonal_Projection_Onto_a_Line
+                '''
+                
+                InitialPoint = rightAnkle
+                FinalPoint = leftAnkle
+                FinalPoint[2] = InitialPoint[2] # We set the y-cordinate to the same. Look in trello for the contact point computation theory
+                foot2footLine = FinalPoint - InitialPoint
+                Origin2footLine = Hip - InitialPoint # Hip seat on the origin
+                ProjectionLine = np.dot(Origin2footLine,foot2footLine)/np.dot(foot2footLine,foot2footLine)*foot2footLine
+                
+                # print("\n" + string(Hip) + "\n")
+                # print(np.dot(Origin2footLine,foot2footLine))
+                # firstFigure.ax.plot([InitialPoint[0], FinalPoint[0]], [InitialPoint[1], FinalPoint[1]],zs=[InitialPoint[2], FinalPoint[2]], color="orange")
+                # firstFigure.ax.plot([InitialPoint[0], Origin2footLine[0]], [InitialPoint[1], Origin2footLine[1]],zs=[InitialPoint[2], Origin2footLine[2]], color="black")
+                # firstFigure.ax.plot([InitialPoint[0], InitialPoint[0] + ProjectionLine[0]], [InitialPoint[1], InitialPoint[1] + ProjectionLine[1]],zs=[InitialPoint[2], InitialPoint[2] + ProjectionLine[2]], color="green")
 
-            # firstFigure.ax.plot([0, foot2footLine[0]], [0, foot2footLine[1]],zs=[0, foot2footLine[2]], color="purple")
-            # firstFigure.ax.plot([0, Origin2footLine[0]], [0, Origin2footLine[1]],zs=[0, Origin2footLine[2]], color="brown")
-            
-            # This value should be btw 1 or -1
-            baricenterDirection = np.dot(ProjectionLine,foot2footLine)/(np.linalg.norm(ProjectionLine)*np.linalg.norm(foot2footLine))
-            # print(baricenterDirection)
-            
-            # signed length ration between ProjectionLine and foot2footLine
-            baricenterValue = np.linalg.norm(ProjectionLine)/np.linalg.norm(foot2footLine)*baricenterDirection
-            
-            if baricenterValue < min_baricenter_position or baricenterValue > max_baricenter_position:
-                contact_points = 1
-            
-            ##################################################################################################################
-            
-            # Get the 3D Coordinates   
-            face_3d.append([0, 0, 0]);          # Nose tip
-            face_3d.append([225, 170, -135]);   # Left eye left corner
-            face_3d.append([-225, 170, -135]);  # Right eye right corner
-            face_3d.append([340, 0, -270]);     # Left ear
-            face_3d.append([-340, 0, -270]);    # Right ear
-            face_3d.append([150, -150, -125]);  # Left Mouth corner
-            face_3d.append([-150, -150, -125]);  # Right Mouth corner
-            
-            # Convert it to the NumPy array
-            face_2d = np.array(face_2d, dtype=np.float64)
+                # firstFigure.ax.plot([0, foot2footLine[0]], [0, foot2footLine[1]],zs=[0, foot2footLine[2]], color="purple")
+                # firstFigure.ax.plot([0, Origin2footLine[0]], [0, Origin2footLine[1]],zs=[0, Origin2footLine[2]], color="brown")
+                
+                # This value should be btw 1 or -1
+                baricenterDirection = np.dot(ProjectionLine,foot2footLine)/(np.linalg.norm(ProjectionLine)*np.linalg.norm(foot2footLine))
+                # print(baricenterDirection)
+                
+                # signed length ration between ProjectionLine and foot2footLine
+                baricenterValue = np.linalg.norm(ProjectionLine)/np.linalg.norm(foot2footLine)*baricenterDirection
+                
+                if baricenterValue < min_baricenter_position or baricenterValue > max_baricenter_position:
+                    contact_points = 1
+                
+                ##################################################################################################################
+                
+                # Get the 3D Coordinates   
+                face_3d.append([0, 0, 0]);          # Nose tip
+                face_3d.append([225, 170, -135]);   # Left eye left corner
+                face_3d.append([-225, 170, -135]);  # Right eye right corner
+                face_3d.append([340, 0, -270]);     # Left ear
+                face_3d.append([-340, 0, -270]);    # Right ear
+                face_3d.append([150, -150, -125]);  # Left Mouth corner
+                face_3d.append([-150, -150, -125]);  # Right Mouth corner
+                
+                # Convert it to the NumPy array
+                face_2d = np.array(face_2d, dtype=np.float64)
 
-            # Convert it to the NumPy array
-            face_3d = np.array(face_3d, dtype=np.float64)
+                # Convert it to the NumPy array
+                face_3d = np.array(face_3d, dtype=np.float64)
 
 
-            # Estimation of the camera parameters
-            focal_length, cam_matrix, dist_matrix = camera_calibration(img_h,img_w)
+                # Estimation of the camera parameters
+                focal_length, cam_matrix, dist_matrix = camera_calibration(img_h,img_w)
 
-            # Solve PnP
-            success, rot_vec, trans_vec = cv2.solvePnP(face_3d, face_2d, cam_matrix, dist_matrix, flags=cv2.SOLVEPNP_SQPNP) # SOLVEPNP_ITERATIVE Iterative method is based on Levenberg-Marquardt optimization. In this case, the function finds such a pose that minimizes reprojection error, that is the sum of squared distances between the observed projections imagePoints and the projected (using projectPoints() ) objectPoints .
+                # Solve PnP
+                success, rot_vec, trans_vec = cv2.solvePnP(face_3d, face_2d, cam_matrix, dist_matrix, flags=cv2.SOLVEPNP_SQPNP) # SOLVEPNP_ITERATIVE Iterative method is based on Levenberg-Marquardt optimization. In this case, the function finds such a pose that minimizes reprojection error, that is the sum of squared distances between the observed projections imagePoints and the projected (using projectPoints() ) objectPoints .
 
-            # Display the nose direction - Project in the image plane a point far in front of the nose
-            # face_3d[0][0], face_3d[0][1], face_3d[0][2]+3000 -> means a point placed further in the z direction in the nose reference frame
-            nose_3d_projection, jacobian = cv2.projectPoints((face_3d[0][0], face_3d[0][1], face_3d[0][2]+1000), rot_vec, trans_vec, cam_matrix, dist_matrix)
-            
-            # _3DCoordinateFrame(image, rot_vec, trans_vec, cam_matrix, dist_matrix) 
+                # Display the nose direction - Project in the image plane a point far in front of the nose
+                # face_3d[0][0], face_3d[0][1], face_3d[0][2]+3000 -> means a point placed further in the z direction in the nose reference frame
+                nose_3d_projection, jacobian = cv2.projectPoints((face_3d[0][0], face_3d[0][1], face_3d[0][2]+1000), rot_vec, trans_vec, cam_matrix, dist_matrix)
+                
+                # _3DCoordinateFrame(image, rot_vec, trans_vec, cam_matrix, dist_matrix) 
 
-            face_3d = np.concatenate((face_3d, np.array(([[face_3d[0][0], face_3d[0][1], face_3d[0][2]+100]]))), axis=0)
+                face_3d = np.concatenate((face_3d, np.array(([[face_3d[0][0], face_3d[0][1], face_3d[0][2]+100]]))), axis=0)
 
-            # firstFigure.Draw3DFace(face_3d) # one 
-            
-            p1 = np.array([nose_2d[0], nose_2d[1]], dtype=int)
-            p2 = np.array([nose_3d_projection[0][0][0] , nose_3d_projection[0][0][1]], dtype=int)
-                    
-            for idx, point in enumerate(face_2d):
-                cv2.circle(image, (int(point[0]), int(point[1])), 3, (0,0,255), 3)
-                    
-            cv2.line(image, p1, p2, (255, 0, 0), 3)
-            
-            ImageCoordinateFrame(image)
-            
-            _3Dorigin = np.array([face_3d[0][0], face_3d[0][1], face_3d[0][2]])
-            _2Dorigin = np.array([nose_2d[0], nose_2d[1]], dtype=int)
-            
-            _3DCoordinateFrame(image, _2Dorigin ,_3Dorigin, rot_vec, trans_vec, cam_matrix, dist_matrix)
-                    
-            Rmat,_ = cv2.Rodrigues(rot_vec)
-            angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(Rmat) # this function implements the results written in the paper RotationMatrixToRollPitchYaw
-            
-            
-            cv2.putText(image, f't: {np.round(knee_difference,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
-            cv2.putText(image, f'contact points: {contact_points}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
-            # cv2.putText(image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
+                # firstFigure.Draw3DFace(face_3d) # one 
+                
+                p1 = np.array([nose_2d[0], nose_2d[1]], dtype=int)
+                p2 = np.array([nose_3d_projection[0][0][0] , nose_3d_projection[0][0][1]], dtype=int)
+                        
+                for idx, point in enumerate(face_2d):
+                    cv2.circle(image, (int(point[0]), int(point[1])), 3, (0,0,255), 3)
+                        
+                cv2.line(image, p1, p2, (255, 0, 0), 3)
+                
+                ImageCoordinateFrame(image)
+                
+                _3Dorigin = np.array([face_3d[0][0], face_3d[0][1], face_3d[0][2]])
+                _2Dorigin = np.array([nose_2d[0], nose_2d[1]], dtype=int)
+                
+                _3DCoordinateFrame(image, _2Dorigin ,_3Dorigin, rot_vec, trans_vec, cam_matrix, dist_matrix)
+                        
+                Rmat,_ = cv2.Rodrigues(rot_vec)
+                angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(Rmat) # this function implements the results written in the paper RotationMatrixToRollPitchYaw
+                
+                
+                cv2.putText(image, f't: {np.round(knee_difference,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+                cv2.putText(image, f'contact points: {contact_points}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+                # cv2.putText(image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
 
-            
-            res.error_list.loc[len(res.error_list.index)] = [count*period_btw_frames, angles[1], myRollWrap(angles[0]), angles[2],chest_LR,chest_FB,chest_Rot,rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW,re_flexion,13,le_flexion,15,rw_flexion_UD, 17,lw_flexion_UD,19, rk_flexion, lk_flexion,22,23,24] # index gives us the # of row present in the dataframe, we are writing in a new row the new value of the fields
-            # print(res.error_list)
-            
-            end = time.time()
-            totalTime = end - start
+                time_stamp = count*period_btw_frames
+                res.error_list.loc[len(res.error_list.index)] = [time_stamp, angles[1], myRollWrap(angles[0]), angles[2],chest_LR,chest_FB,chest_Rot,rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW,re_flexion,0,le_flexion,0,rw_flexion_UD, 0,lw_flexion_UD,0, rk_flexion, lk_flexion,contact_points,0,0] # index gives us the # of row present in the dataframe, we are writing in a new row the new value of the fields
+                # print(res.error_list)
+                
+                
+                end = time.time()
+                totalTime = end - start
 
-            try:
-                fps_output = (1 / totalTime)*frames_to_skip
-            except:
-                fps_output= -1
+                try:
+                    fps_output = (1 / totalTime)*frames_to_skip
+                except:
+                    fps_output= -1
 
-            cv2.putText(image, f'FPS: {int(fps_output)}', (20,450), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
+                cv2.putText(image, f'FPS: {int(fps_output)}', (20,450), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
 
-            # Render detections
-            mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
-                                    mp_drawing.DrawingSpec(color=(245,117,66), thickness=2, circle_radius=2), 
-                                    mp_drawing.DrawingSpec(color=(245,66,230), thickness=2, circle_radius=2) 
-                                    )
+                # Render detections
+                mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
+                                        mp_drawing.DrawingSpec(color=(245,117,66), thickness=2, circle_radius=2), 
+                                        mp_drawing.DrawingSpec(color=(245,66,230), thickness=2, circle_radius=2) 
+                                        )
 
-            cv2.imshow('Head Pose Estimation', image)
-            
-            firstFigure.draw3D(results.pose_world_landmarks)
-            
-            
-            
-            plt.pause(.001)
+                cv2.imshow('Head Pose Estimation', image)
+                
+                firstFigure.draw3D(results.pose_world_landmarks)
+                
+                if (count%50) == 0 or count == 0:
+                    res.add_picture(image,time_stamp, count)
+                
+                plt.pause(.001)
 
-        if cv2.waitKey(5) & 0xFF == 27:
-            break
+            if cv2.waitKey(5) & 0xFF == 27:
+                break
 
-
-cap.release()
+        cap.release()
+        
+    finally:
+        res.save_excel(res.error_list)
