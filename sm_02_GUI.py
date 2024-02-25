@@ -228,3 +228,19 @@ class Gui:
     def DrawFootLine(self, rightKnee, leftKnee, rightAnkle, leftAnkle):
         self.ax.plot([rightKnee[0], rightAnkle[0]], [rightKnee[1], rightAnkle[1]],zs=[rightKnee[2], rightAnkle[2]], color="blue")
         self.ax.plot([leftKnee[0], leftAnkle[0]], [leftKnee[1], leftAnkle[1]],zs=[leftKnee[2], leftAnkle[2]], color="blue")
+
+    def DrawBaricenterLine(self, rightAnkle, leftAnkle, Hip):
+        InitialPoint = rightAnkle
+        FinalPoint = leftAnkle
+        FinalPoint[2] = InitialPoint[2] # We set the y-cordinate to the same. Look in trello for the contact point computation theory
+        foot2footLine = FinalPoint - InitialPoint
+        Origin2footLine = Hip - InitialPoint # Hip seat on the origin
+        ProjectionLine = np.dot(Origin2footLine,foot2footLine)/np.dot(foot2footLine,foot2footLine)*foot2footLine
+
+        # print(np.dot(Origin2footLine,foot2footLine))
+        self.ax.plot([InitialPoint[0], FinalPoint[0]], [InitialPoint[1], FinalPoint[1]],zs=[InitialPoint[2], FinalPoint[2]], color="orange")
+        self.ax.plot([InitialPoint[0], Origin2footLine[0]], [InitialPoint[1], Origin2footLine[1]],zs=[InitialPoint[2], Origin2footLine[2]], color="black")
+        self.ax.plot([InitialPoint[0], InitialPoint[0] + ProjectionLine[0]], [InitialPoint[1], InitialPoint[1] + ProjectionLine[1]],zs=[InitialPoint[2], InitialPoint[2] + ProjectionLine[2]], color="green")
+
+        self.ax.plot([0, foot2footLine[0]], [0, foot2footLine[1]],zs=[0, foot2footLine[2]], color="purple")
+        self.ax.plot([0, Origin2footLine[0]], [0, Origin2footLine[1]],zs=[0, Origin2footLine[2]], color="brown")

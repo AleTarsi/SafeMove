@@ -131,3 +131,46 @@ class Computation:
         rk_flexion = np.rad2deg(np.arccos(np.dot(rightkneeLine,rightFeetLine)/(np.linalg.norm(rightkneeLine)*np.linalg.norm(rightFeetLine))))
         
         return rk_flexion, lk_flexion
+    
+    def ComputeContactPoints(self, rk_flexion, lk_flexion, max_knee_difference, rightAnkle, leftAnkle, Hip, min_baricenter_position, max_baricenter_position):
+        ############################### Computation of number of Contact points ###########################################
+                
+                '''
+                1- Verify whether the knee angles' difference is over a certain threshold as first check
+                2- Verify whether the lateral position of the pelvis are outside a certain threshold as second check
+                3- From these two checks determine the number of contact points
+                '''
+                
+                contact_points = 2
+                
+                #Point 1
+                knee_difference = abs(rk_flexion - lk_flexion)
+                if knee_difference >= max_knee_difference:
+                    contact_points = 1
+                    
+                '''
+                Point 2 
+                - it'd be sufficient to compute the position of the central point of the pelvis wrt the line connecting the feet 
+                - Project the Hip point onto the line connecting the feet, it should be 0.5 the value when the pelvis is in centered 
+                
+                Idea: compute the projection line as described in https://en.wikibooks.org/wiki/Linear_Algebra/Orthogonal_Projection_Onto_a_Line
+                '''
+                #Point 2
+                InitialPoint = rightAnkle
+                FinalPoint = leftAnkle
+                FinalPoint[2] = InitialPoint[2] # We set the y-cordinate to the same. Look in trello for the contact point computation theory
+                foot2footLine = FinalPoint - InitialPoint
+                Origin2footLine = Hip - InitialPoint # Hip seat on the origin
+                ProjectionLine = np.dot(Origin2footLine,foot2footLine)/np.dot(foot2footLine,foot2footLine)*foot2footLine
+                
+                # This value should be btw 1 or -1
+                baricenterDirection = np.dot(ProjectionLine,foot2footLine)/(np.linalg.norm(ProjectionLine)*np.linalg.norm(foot2footLine))
+                # print(baricenterDirection)
+                
+                # signed length ration between ProjectionLine and foot2footLine
+                baricenterValue = np.linalg.norm(ProjectionLine)/np.linalg.norm(foot2footLine)*baricenterDirection
+                
+                if baricenterValue < min_baricenter_position or baricenterValue > max_baricenter_position:
+                    contact_points = 1
+                    
+                return contact_points, knee_difference

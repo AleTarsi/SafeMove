@@ -15,7 +15,7 @@ mp_pose = mp.solutions.pose
 mp_pose.Pose(static_image_mode=False,
             model_complexity=2,
             min_detection_confidence=0.5,
-            min_tracking_confidence=0.5)
+            min_tracking_confidence=1.0)
 
 
 mp_drawing = mp.solutions.drawing_utils
@@ -25,12 +25,13 @@ firstFigure = Gui() # Change figure parameter to increase the sieze of the video
 angleDetective = Computation()
             
 folder_path = 'C:/Users/aless/OneDrive/Desktop/SafeMove/'
-video = 'video_05'
+video = 'video_12'
 
 cap = cv2.VideoCapture(folder_path + "videos/" + video + ".mp4") # 0 for webcam
 # cap = cv2.VideoCapture(0) # 0 for webcam
 
 
+save_pictures_in_excel = False
 frames_to_skip = 1
 fps_input_video = 30
 period_btw_frames = 1/fps_input_video
@@ -115,20 +116,17 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
                 face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
                 rightMouth = fromWorldLandmark2nparray(world_landmarks[idx])
                         
-                idx = PoseLandmark.LEFT_HIP
-                leftHip = fromWorldLandmark2nparray(world_landmarks[idx])
+                leftHip = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_HIP])
+                rightHip = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_HIP])
                 
-                idx = PoseLandmark.RIGHT_HIP
-                rightHip = fromWorldLandmark2nparray(world_landmarks[idx])
                 try:
                     Hip = computeMidPosition(leftHip,rightHip)[0]
                 except:
                     print("Some problems computing Hip pose")
                         
-                idx = PoseLandmark.LEFT_SHOULDER
-                leftShoulder = fromWorldLandmark2nparray(world_landmarks[idx])
-                idx = PoseLandmark.RIGHT_SHOULDER
-                rightShoulder = fromWorldLandmark2nparray(world_landmarks[idx])
+                leftShoulder = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_SHOULDER])
+                rightShoulder = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_SHOULDER])
+                
                 try:
                     '''
                     Observations: It seems that the point describing the chest tends to be leaned even when the person is standing straight 
@@ -137,50 +135,30 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
                 except:
                     print("Some problems computing Shoulder pose")
                 
-                idx = PoseLandmark.RIGHT_ELBOW
-                rightElbow = fromWorldLandmark2nparray(world_landmarks[idx])
+                rightElbow = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_ELBOW])
+                leftElbow = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_ELBOW])
+                rightWrist = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_WRIST])
+                leftWrist = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_WRIST])
+                rightPinky = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_PINKY])
+                rightIndex = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_INDEX])
                 
-                idx = PoseLandmark.LEFT_ELBOW
-                leftElbow = fromWorldLandmark2nparray(world_landmarks[idx])
-                
-                idx = PoseLandmark.RIGHT_WRIST
-                rightWrist = fromWorldLandmark2nparray(world_landmarks[idx])
-                
-                idx = PoseLandmark.LEFT_WRIST
-                leftWrist = fromWorldLandmark2nparray(world_landmarks[idx])
-                
-                idx = PoseLandmark.RIGHT_PINKY
-                rightPinky = fromWorldLandmark2nparray(world_landmarks[idx])
-                
-                idx = PoseLandmark.RIGHT_INDEX
-                rightIndex = fromWorldLandmark2nparray(world_landmarks[idx])
                 try:
                     rightHand = computeMidPosition(rightPinky,rightIndex)[0]
                 except:
                     print("Some problems computing R. Hand pose")
                 
-                idx = PoseLandmark.LEFT_PINKY
-                leftPinky = fromWorldLandmark2nparray(world_landmarks[idx])
-                
-                idx = PoseLandmark.LEFT_INDEX
-                leftIndex = fromWorldLandmark2nparray(world_landmarks[idx])
+                leftPinky = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_PINKY])
+                leftIndex = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_INDEX])
                 
                 try:
                     leftHand = computeMidPosition(leftPinky,leftIndex)[0]
                 except:
                     print("Some problems computing L. Hand pose")
                     
-                idx = PoseLandmark.LEFT_KNEE
-                leftKnee = fromWorldLandmark2nparray(world_landmarks[idx])
-                
-                idx = PoseLandmark.RIGHT_KNEE
-                rightKnee = fromWorldLandmark2nparray(world_landmarks[idx])
-                
-                idx = PoseLandmark.LEFT_ANKLE
-                leftAnkle = fromWorldLandmark2nparray(world_landmarks[idx])
-                
-                idx = PoseLandmark.RIGHT_ANKLE
-                rightAnkle = fromWorldLandmark2nparray(world_landmarks[idx])
+                leftKnee = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_KNEE])
+                rightKnee = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_KNEE])
+                leftAnkle = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_ANKLE])
+                rightAnkle = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_ANKLE])
                                                     
                 ###########################   Angle computation Phase and subPlots ###########################################      
                 firstFigure.ax.cla()
@@ -211,56 +189,8 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
                 rk_flexion, lk_flexion = angleDetective.KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle)
                 # firstFigure.DrawKneeLine(rightKnee, leftKnee, rightHip, leftHip)
                 # firstFigure.DrawFootLine(rightKnee, leftKnee, rightAnkle, leftAnkle)
-                
-                ############################### Computation of number of Contact points ###########################################
-                
-                '''
-                1- Verify whether the knee angles' difference is over a certain threshold as first check
-                2- Verify whether the lateral position of the pelvis are outside a certain threshold as second check
-                3- From these two checks determine the number of contact points
-                '''
-                
-                #Point 1
-                contact_points = 2
-                knee_difference = abs(rk_flexion - lk_flexion)
-                if knee_difference >= max_knee_difference:
-                    contact_points = 1
-                    
-                '''
-                Point 2 
-                - it'd be sufficient to compute the position of the central point of the pelvis wrt the line connecting the feet 
-                - Project the Hip point onto the line connecting the feet, it should be 0.5 the value when the pelvis is in centered 
-                
-                Idea: compute the projection line as described in https://en.wikibooks.org/wiki/Linear_Algebra/Orthogonal_Projection_Onto_a_Line
-                '''
-                
-                InitialPoint = rightAnkle
-                FinalPoint = leftAnkle
-                FinalPoint[2] = InitialPoint[2] # We set the y-cordinate to the same. Look in trello for the contact point computation theory
-                foot2footLine = FinalPoint - InitialPoint
-                Origin2footLine = Hip - InitialPoint # Hip seat on the origin
-                ProjectionLine = np.dot(Origin2footLine,foot2footLine)/np.dot(foot2footLine,foot2footLine)*foot2footLine
-                
-                # print("\n" + string(Hip) + "\n")
-                # print(np.dot(Origin2footLine,foot2footLine))
-                # firstFigure.ax.plot([InitialPoint[0], FinalPoint[0]], [InitialPoint[1], FinalPoint[1]],zs=[InitialPoint[2], FinalPoint[2]], color="orange")
-                # firstFigure.ax.plot([InitialPoint[0], Origin2footLine[0]], [InitialPoint[1], Origin2footLine[1]],zs=[InitialPoint[2], Origin2footLine[2]], color="black")
-                # firstFigure.ax.plot([InitialPoint[0], InitialPoint[0] + ProjectionLine[0]], [InitialPoint[1], InitialPoint[1] + ProjectionLine[1]],zs=[InitialPoint[2], InitialPoint[2] + ProjectionLine[2]], color="green")
-
-                # firstFigure.ax.plot([0, foot2footLine[0]], [0, foot2footLine[1]],zs=[0, foot2footLine[2]], color="purple")
-                # firstFigure.ax.plot([0, Origin2footLine[0]], [0, Origin2footLine[1]],zs=[0, Origin2footLine[2]], color="brown")
-                
-                # This value should be btw 1 or -1
-                baricenterDirection = np.dot(ProjectionLine,foot2footLine)/(np.linalg.norm(ProjectionLine)*np.linalg.norm(foot2footLine))
-                # print(baricenterDirection)
-                
-                # signed length ration between ProjectionLine and foot2footLine
-                baricenterValue = np.linalg.norm(ProjectionLine)/np.linalg.norm(foot2footLine)*baricenterDirection
-                
-                if baricenterValue < min_baricenter_position or baricenterValue > max_baricenter_position:
-                    contact_points = 1
-                
-                ##################################################################################################################
+                contact_points, knee_difference = angleDetective.ComputeContactPoints(rk_flexion, lk_flexion, max_knee_difference, rightAnkle, leftAnkle, Hip, min_baricenter_position, max_baricenter_position)
+                # firstFigure.DrawBaricenterLine(rightAnkle, leftAnkle, Hip)
                 
                 # Get the 3D Coordinates   
                 face_3d.append([0, 0, 0]);          # Nose tip
@@ -342,7 +272,7 @@ with mp_pose.Pose() as pose: # very important for the sake of computation effici
                 
                 firstFigure.draw3D(results.pose_world_landmarks)
                 
-                if (count%50) == 0 or count == 0:
+                if ((count%50) == 0 or count == 0) and save_pictures_in_excel:
                     res.add_picture(image,time_stamp, count)
                 
                 plt.pause(.001)
