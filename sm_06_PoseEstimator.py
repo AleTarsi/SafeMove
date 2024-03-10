@@ -4,7 +4,7 @@ import numpy as np
 import time
 from sm_02_GUI import Gui
 from sm_05_Pose2Angles import Pose2Angles
-from sm_00_utils import ImageCoordinateFrame, _3DCoordinateFrame, myRollWrap, computeMidPosition, fromWorldLandmark2nparray, PoseLandmark
+from sm_00_utils import faceModel3D, ImageCoordinateFrame, _3DCoordinateFrame, myRollWrap, computeMidPosition, fromWorldLandmark2nparray, PoseLandmark
 from sm_03_camera_calibration import camera_calibration
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
@@ -35,12 +35,12 @@ class PoseEstimator:
     
     def run(self, results, visualizePose=True):
         
-        img_h, img_w, img_c = self.image.shape
-            
-        face_3d = []
-        face_2d = []
         ############################ Extraction Phase  ####################################      
         if results.pose_landmarks:
+            
+            img_h, img_w, img_c = self.image.shape
+            
+            face_2d = []
             
             landmarks = results.pose_landmarks.landmark
             world_landmarks = results.pose_world_landmarks.landmark                    
@@ -73,6 +73,9 @@ class PoseEstimator:
             idx = PoseLandmark.MOUTH_RIGHT
             face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
             rightMouth = fromWorldLandmark2nparray(world_landmarks[idx])
+            
+            # Convert it to the NumPy array
+            face_2d = np.array(face_2d, dtype=np.float64)
                     
             leftHip = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_HIP])
             rightHip = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_HIP])
@@ -125,50 +128,35 @@ class PoseEstimator:
             self.Gui_.ax.set_zlim3d(-1, 1)
             
             waist_xaxis, waist_yaxis, waist_zaxis = self.Pose2Angles.BodyAxes(leftHip = leftHip)
-            # firstFigure.BodyReferenceFrame(waist_xaxis, waist_yaxis, waist_zaxis)
+            # self.Gui_.BodyReferenceFrame(waist_xaxis, waist_yaxis, waist_zaxis)
             
             chest_xaxis, chest_yaxis, chest_zaxis = self.Pose2Angles.BackAxes(left_shoulder_point=leftShoulder, chest=Chest)
-            # firstFigure.ChestReferenceFrame(chest_xaxis, chest_yaxis, chest_zaxis, chest=Chest)
-            # firstFigure.DrawTrunk(trunk_point=[Chest,Hip,leftHip,rightHip])
+            # self.Gui_.ChestReferenceFrame(chest_xaxis, chest_yaxis, chest_zaxis, chest=Chest)
+            # self.Gui_.DrawTrunk(trunk_point=[Chest,Hip,leftHip,rightHip])
             
             chest_LR, chest_FB, chest_Rot = self.Pose2Angles.BackAngles(waist_xaxis, waist_yaxis, waist_zaxis, chest_xaxis, chest_yaxis, chest_zaxis)
             
             rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW = self.Pose2Angles.ShoulderAngles(rightShoulder,rightElbow,leftShoulder,leftElbow,chest_zaxis, chest_xaxis)
-            # firstFigure.DrawElbowLine(rightShoulder,rightElbow,leftShoulder,leftElbow)
+            # self.Gui_.DrawElbowLine(rightShoulder,rightElbow,leftShoulder,leftElbow)
             
             re_flexion, le_flexion = self.Pose2Angles.ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist)
-            # firstFigure.DrawWristLine(rightWrist,rightElbow,leftWrist,leftElbow)
+            # self.Gui_.DrawWristLine(rightWrist,rightElbow,leftWrist,leftElbow)
             
             rw_flexion_UD, lw_flexion_UD, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = self.Pose2Angles.WristAngles(rightElbow, rightWrist, rightHand, rightIndex, rightPinky, leftElbow, leftWrist, leftHand, leftIndex, leftPinky)
-            # firstFigure.DrawHandLine(rightWrist,rightHand,leftWrist,leftHand)
-            # firstFigure.DrawHandaxes(leftWrist,leftWristLine,leftPalmLine,leftOrthogonalPalmLine)
-            # firstFigure.DrawHandaxes(rightWrist,rightWristLine,rightPalmLine,rightOrthogonalPalmLine)        
+            # self.Gui_.DrawHandLine(rightWrist,rightHand,leftWrist,leftHand)
+            # self.Gui_.DrawHandaxes(leftWrist,leftWristLine,leftPalmLine,leftOrthogonalPalmLine)
+            # self.Gui_.DrawHandaxes(rightWrist,rightWristLine,rightPalmLine,rightOrthogonalPalmLine)        
             
             rk_flexion, lk_flexion = self.Pose2Angles.KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle)
-            # firstFigure.DrawKneeLine(rightKnee, leftKnee, rightHip, leftHip)
-            # firstFigure.DrawFootLine(rightKnee, leftKnee, rightAnkle, leftAnkle)
+            # self.Gui_.DrawKneeLine(rightKnee, leftKnee, rightHip, leftHip)
+            # self.Gui_.DrawFootLine(rightKnee, leftKnee, rightAnkle, leftAnkle)
             contact_points, knee_difference = self.Pose2Angles.ComputeContactPoints(rk_flexion, lk_flexion, self.max_knee_difference, rightAnkle, leftAnkle, Hip, self.min_baricenter_position, self.max_baricenter_position)
-            # firstFigure.DrawBaricenterLine(rightAnkle, leftAnkle, Hip)
-            
-            # Get the 3D Coordinates   
-            face_3d.append([0, 0, 0]);          # Nose tip
-            face_3d.append([225, 170, -135]);   # Left eye left corner
-            face_3d.append([-225, 170, -135]);  # Right eye right corner
-            face_3d.append([340, 0, -270]);     # Left ear
-            face_3d.append([-340, 0, -270]);    # Right ear
-            face_3d.append([150, -150, -125]);  # Left Mouth corner
-            face_3d.append([-150, -150, -125]);  # Right Mouth corner
-            
-            # Convert it to the NumPy array
-            face_2d = np.array(face_2d, dtype=np.float64)
-
-            # Convert it to the NumPy array
-            face_3d = np.array(face_3d, dtype=np.float64)
-
+            # self.Gui_.DrawBaricenterLine(rightAnkle, leftAnkle, Hip)
 
             # Estimation of the camera parameters
             focal_length, cam_matrix, dist_matrix = camera_calibration(img_h,img_w)
 
+            face_3d = faceModel3D()
             # Solve PnP
             success, rot_vec, trans_vec = cv2.solvePnP(face_3d, face_2d, cam_matrix, dist_matrix, flags=cv2.SOLVEPNP_SQPNP) # SOLVEPNP_ITERATIVE Iterative method is based on Levenberg-Marquardt optimization. In this case, the function finds such a pose that minimizes reprojection error, that is the sum of squared distances between the observed projections imagePoints and the projected (using projectPoints() ) objectPoints .
 
@@ -180,7 +168,12 @@ class PoseEstimator:
 
             face_3d = np.concatenate((face_3d, np.array(([[face_3d[0][0], face_3d[0][1], face_3d[0][2]+100]]))), axis=0)
 
-            # firstFigure.Draw3DFace(face_3d) # one 
+            # self.Gui_.Draw3DFace(face_3d) # one 
+            
+            Rmat,_ = cv2.Rodrigues(rot_vec)
+            angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(Rmat) # this function implements the results written in the paper RotationMatrixToRollPitchYaw
+            
+            ###################################### Write things on image ##############################
             
             p1 = np.array([nose_2d[0], nose_2d[1]], dtype=int)
             p2 = np.array([nose_3d_projection[0][0][0] , nose_3d_projection[0][0][1]], dtype=int)
@@ -197,17 +190,11 @@ class PoseEstimator:
             
             _3DCoordinateFrame(self.image, _2Dorigin ,_3Dorigin, rot_vec, trans_vec, cam_matrix, dist_matrix)
                     
-            Rmat,_ = cv2.Rodrigues(rot_vec)
-            angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(Rmat) # this function implements the results written in the paper RotationMatrixToRollPitchYaw
-            
             
             cv2.putText(self.image, f't: {np.round(knee_difference,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
             cv2.putText(self.image, f'contact points: {contact_points}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
             # cv2.putText(self.image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
-            
-            if visualizePose:
-                self.Gui_.draw3D(results.pose_world_landmarks)
-            
+                     
             
             return angles[1], myRollWrap(angles[0]), angles[2],chest_LR,chest_FB,chest_Rot,rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW,re_flexion,0,le_flexion,0,rw_flexion_UD, 0,lw_flexion_UD,0, rk_flexion, lk_flexion,contact_points,0,0 # index gives us the # of row present in the dataframe, we are writing in a new row the new value of the fields
         

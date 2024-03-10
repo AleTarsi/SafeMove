@@ -181,3 +181,22 @@ def from_image_name_2_excel_row_value(file):
       # Handle the exception
       print(bcolors.FAIL + 'Failed to convert iamge name into excel row value')
       return -1
+
+def faceModel3D():
+    
+    face_3d = []
+    
+    # Get the 3D Coordinates   
+    face_3d.append([0, 0, 0]);          # Nose tip
+    face_3d.append([225, 170, -135]);   # Left eye left corner
+    face_3d.append([-225, 170, -135]);  # Right eye right corner
+    face_3d.append([340, 0, -270]);     # Left ear
+    face_3d.append([-340, 0, -270]);    # Right ear
+    face_3d.append([150, -150, -125]);  # Left Mouth corner
+    face_3d.append([-150, -150, -125]);  # Right Mouth corner
+
+    # Convert it to the NumPy array
+    face_3d = np.array(face_3d, dtype=np.float64)
+    
+    return face_3d
+            

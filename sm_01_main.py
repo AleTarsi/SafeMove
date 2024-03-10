@@ -13,10 +13,12 @@ from sm_04_ResultsLogger import ResultsLogger
             
             
 save_pictures_in_excel = False
+visualizePose = True
 speed_up_rate = 1 # integer value greater than 1, it set the number of frames to skip in the video btw one computation and another
 fps_input_video = 30
 period_btw_frames = 1/fps_input_video
 count = 0 
+
 # print(period_btw_frames)
 # print(range(speed_up_rate))
 
@@ -65,7 +67,7 @@ with NN.Pose() as PoseNN: # very important for the sake of computation efficienc
             
             PoseEstimator_.set_image(image)
             # print(results)
-            angle_list = PoseEstimator_.run(results, visualizePose=False)
+            angle_list = PoseEstimator_.run(results)
             
             if angle_list != -1:
                     
@@ -74,12 +76,15 @@ with NN.Pose() as PoseNN: # very important for the sake of computation efficienc
                 logger.error_list.loc[len(logger.error_list.index)] = [time_stamp, *angle_list] # the Asterisk unpack tuples or lists
                 # print(logger.error_list)
                 
+                if visualizePose:
+                    PoseEstimator_.Gui_.draw3D(results.pose_world_landmarks)
+                    PoseEstimator_.Gui_.drawLandmark(image,results.pose_landmarks, NN)
+                
             end = time.time()
             fps = computeFPS(end,start,speed_up_rate)
             
             PoseEstimator_.Gui_.showText(PoseEstimator_.get_image(), f'FPS: {int(fps)}', (20,450))   
             
-            PoseEstimator_.Gui_.drawLandmark(image,results.pose_landmarks, NN)
             cv2.imshow('Head Pose Estimation', PoseEstimator_.get_image())
             
             if save_pictures_in_excel:
