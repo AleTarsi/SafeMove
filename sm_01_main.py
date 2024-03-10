@@ -36,7 +36,7 @@ NN.Pose(static_image_mode=False,
 
 with NN.Pose() as PoseNN: # very important for the sake of computation efficiency, not sure why though.
     try: 
-        PoseEstimator_ = PoseEstimator(PoseNN)
+        PoseEstimator_ = PoseEstimator()
         PoseEstimator_.setBaricenterLimit(0.8) # value btw 0.0 and 1.0, where 0.0 means you are on one foot any time the hip projection is not in the middle of your feet, and 1.0 you are considered on one foot only if your hip ground projection is over your feet position.
         PoseEstimator_.setMaxKneeDifference(20) # maximum difference in your knee angles before you are considered on one foot
 
@@ -48,8 +48,24 @@ with NN.Pose() as PoseNN: # very important for the sake of computation efficienc
 
             start = time.time()
 
+            # Flip the image horizontally for a later selfie-view display
+            # Also convert the color space from BGR to RGB
+            image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
+            # To improve performance
+            image.flags.writeable = False
+            
+            # Get the result
+            results = PoseNN.process(image)
+            
+            # To improve performance
+            image.flags.writeable = True
+            
+            # Convert the color space from RGB to BGR
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            
             PoseEstimator_.set_image(image)
-            angle_list = PoseEstimator_.run(visualizePose=True)
+            
+            angle_list = PoseEstimator_.run(results, visualizePose=True)
             
             if angle_list != -1:
                     

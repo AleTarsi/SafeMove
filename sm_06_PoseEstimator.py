@@ -12,10 +12,9 @@ from sm_04_ResultsLogger import ResultsLogger
 
 class PoseEstimator:
     
-    def __init__(self, PoseNN):
+    def __init__(self):
         self.Gui_ = Gui()
         self.Pose2Angles = Pose2Angles()
-        self.PoseNN = PoseNN
         self.image = np.empty([2,2])
         
     def setBaricenterLimit(self, value):
@@ -34,28 +33,12 @@ class PoseEstimator:
     def get_image(self):
         return self.image
     
-    def run(self, visualizePose=True):
-
-        # Flip the image horizontally for a later selfie-view display
-        # Also convert the color space from BGR to RGB
-        self.image = cv2.cvtColor(cv2.flip(self.image, 1), cv2.COLOR_BGR2RGB)
-         # To improve performance
-        self.image.flags.writeable = False
-        
-        # Get the result
-        results = self.PoseNN.process(self.image)
-        
-        # To improve performance
-        self.image.flags.writeable = True
-        
-        # Convert the color space from RGB to BGR
-        self.image = cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
+    def run(self, results, visualizePose=True):
         
         img_h, img_w, img_c = self.image.shape
-        
+            
         face_3d = []
         face_2d = []
-
         ############################ Extraction Phase  ####################################      
         if results.pose_landmarks:
             
