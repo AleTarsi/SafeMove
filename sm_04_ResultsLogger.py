@@ -9,7 +9,7 @@ import shutil
 from sm_00_utils import bcolors, from_image_name_2_excel_row_value
 import glob
 
-class Result:
+class ResultsLogger:
   
   def __init__(self, folder_path, source_video):
     current_time = datetime.datetime.now()
@@ -52,20 +52,21 @@ class Result:
                              'L.ankle.flexion.UD [°]': [],
                             })
   
-  def add_picture(self, img, time_stamp, count):
+  def add_picture(self, img, time_stamp, count, PicturesamplingTime=50):
     '''
     In order to do not keep a struct containing all the pictures we save them in a tmp folder, and then we will delete all of them
     '''
-    # img_name = "time_stamp_" + str(time_stamp) + "count_" + str(count) + ".png"
-    img_name =str(count) + ".png"
-    tmp_path = self.folder_path + 'tmp/' 
-    
-    # Create folder if it does not exists
-    if not os.path.exists(self.folder_path + 'tmp/'):
-      os.makedirs( self.folder_path + 'tmp/')
+    if count == 0 or count%PicturesamplingTime == 0:
+      # img_name = "time_stamp_" + str(time_stamp) + "count_" + str(count) + ".png"
+      img_name =str(count) + ".png"
+      tmp_path = self.folder_path + 'tmp/' 
+      
+      # Create folder if it does not exists
+      if not os.path.exists(self.folder_path + 'tmp/'):
+        os.makedirs( self.folder_path + 'tmp/')
 
-    # write_pictures
-    cv2.imwrite(tmp_path + img_name, img) 
+      # write_pictures
+      cv2.imwrite(tmp_path + img_name, img) 
     
     
   def save_excel(self, dataframe):

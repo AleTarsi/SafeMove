@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
+import mediapipe as mp
 import numpy as np
+import cv2
 from sm_00_utils import computeMidPosition
 
 class Gui:
     def __init__(self):
-
 
         #Set up graphical elements
         self.fig = plt.figure()
@@ -14,8 +15,22 @@ class Gui:
                 
         self.ax.grid(visible=True, which='both')
         
-        
+    def drawLandmark(self, image, pose_landmarks, NN):
+        mp_drawing = mp.solutions.drawing_utils
+        # drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
+        # Render detections
+        mp_drawing.draw_landmarks(image, pose_landmarks, NN.POSE_CONNECTIONS,
+                                mp_drawing.DrawingSpec(color=(245,117,66), thickness=2, circle_radius=2), 
+                                mp_drawing.DrawingSpec(color=(245,66,230), thickness=2, circle_radius=2) 
+                                )
+
+    def showText(self, image, txt, pose): # f'FPS: {int(fps)}'
+        '''
+        Note that pose argument must be a tuple
+        '''
+        cv2.putText(image, txt, pose, cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
+    
     def draw3D(self,landmarks, extraPoint=False):
 
         landmark_point = []

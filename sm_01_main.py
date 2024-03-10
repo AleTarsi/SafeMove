@@ -5,35 +5,28 @@ import time
 from sm_02_GUI import Gui
 from sm_05_Pose2Angles import Pose2Angles
 from sm_06_PoseEstimator import PoseEstimator
-from sm_00_utils import ComputeAngle, ImageCoordinateFrame, _3DCoordinateFrame, myRollWrap, computeMidPosition, fromWorldLandmark2nparray, PoseLandmark
+from sm_00_utils import ImageCoordinateFrame, _3DCoordinateFrame, myRollWrap, computeMidPosition, fromWorldLandmark2nparray, computeFPS, PoseLandmark
 from sm_03_camera_calibration import camera_calibration
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
-from sm_04_logger import Result
-
-mp_drawing = mp.solutions.drawing_utils
-drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
-
+from sm_04_ResultsLogger import ResultsLogger
             
+            
+save_pictures_in_excel = False
+speed_up_rate = 1 # integer value greater than 1, it set the number of frames to skip in the video btw one computation and another
+fps_input_video = 30
+period_btw_frames = 1/fps_input_video
+count = 0 
+# print(period_btw_frames)
+# print(range(speed_up_rate))
+
 folder_path = 'C:/Users/aless/OneDrive/Desktop/SafeMove/'
 video = 'video_05'
 
 cap = cv2.VideoCapture(folder_path + "videos/" + video + ".mp4") # 0 for webcam
 # cap = cv2.VideoCapture(0) # 0 for webcam
 
-
-save_pictures_in_excel = False
-frames_to_skip = 1
-fps_input_video = 30
-period_btw_frames = 1/fps_input_video
-# print(period_btw_frames)
-# print(range(frames_to_skip))
-
-
-res = Result(folder_path=folder_path, source_video=video)
-
-count = 0 
-
+result = ResultsLogger(folder_path=folder_path, source_video=video)
 NN = mp.solutions.pose
 
 NN.Pose(static_image_mode=False,
@@ -48,49 +41,32 @@ with NN.Pose() as PoseNN: # very important for the sake of computation efficienc
         PoseEstimator_.setMaxKneeDifference(20) # maximum difference in your knee angles before you are considered on one foot
 
         while cap.isOpened():
-            for i in range(frames_to_skip):
+            for i in range(speed_up_rate):
                 success, image = cap.read() 
                 if success:
                     count = count + 1    
 
             start = time.time()
 
-            # Flip the image horizontally for a later selfie-view display
-            # Also convert the color space from BGR to RGB
-            image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
-
-            angle_list = PoseEstimator_.run(image)
+            PoseEstimator_.set_image(image)
+            angle_list = PoseEstimator_.run(visualizePose=True)
             
-            
-            time_stamp = count*period_btw_frames
-            
-            
-            res.error_list.loc[len(res.error_list.index)] = time_stamp, angle_list
-            # print(res.error_list)
-            
-            
+            if angle_list != -1:
+                    
+                time_stamp = count*period_btw_frames
+                
+                result.error_list.loc[len(result.error_list.index)] = [time_stamp, *angle_list] # the Asterisk unpack tuples or lists
+                # print(result.error_list)
+                
             end = time.time()
-            totalTime = end - start
-
-            try:
-                fps_output = (1 / totalTime)*frames_to_skip
-            except:
-                fps_output= -1
-
-            cv2.putText(image, f'FPS: {int(fps_output)}', (20,450), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
-
-            # Render detections
-            mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
-                                    mp_drawing.DrawingSpec(color=(245,117,66), thickness=2, circle_radius=2), 
-                                    mp_drawing.DrawingSpec(color=(245,66,230), thickness=2, circle_radius=2) 
-                                    )
-
-            cv2.imshow('Head Pose Estimation', image)
+            fps = computeFPS(end,start,speed_up_rate)
             
-            PoseEstimator_.Gui_.draw3D(results.pose_world_landmarks)
+            PoseEstimator_.Gui_.showText(PoseEstimator_.get_image(), f'FPS: {int(fps)}', (20,450))   
+                
+            cv2.imshow('Head Pose Estimation', PoseEstimator_.get_image())
             
-            if ((count%50) == 0 or count == 0) and save_pictures_in_excel:
-                res.add_picture(image,time_stamp, count)
+            if save_pictures_in_excel:
+                result.add_picture(PoseEstimator_.get_image(),time_stamp, count, PicturesamplingTime=50)
             
             plt.pause(.001)
 
@@ -101,4 +77,4 @@ with NN.Pose() as PoseNN: # very important for the sake of computation efficienc
         cap.release()
         
     finally:
-        res.save_excel(res.error_list)
+        result.save_excel(result.error_list)
