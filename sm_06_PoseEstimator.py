@@ -4,7 +4,7 @@ import numpy as np
 import time
 from sm_02_GUI import Gui
 from sm_05_Pose2Angles import Pose2Angles
-from sm_00_utils import faceModel3D, ImageCoordinateFrame, _3DCoordinateFrame, myRollWrap, computeMidPosition, fromWorldLandmark2nparray, PoseLandmark
+from sm_00_utils import faceModel3D, ImageCoordinateFrame, Face3DCoordinateFrame, myRollWrap, computeMidPosition, fromWorldLandmark2nparray, PoseLandmark
 from sm_03_camera_calibration import camera_calibration
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
@@ -14,7 +14,6 @@ class PoseEstimator:
     
     def __init__(self):
         self.Gui_ = Gui()
-        self.Pose2Angles = Pose2Angles()
         self.image = np.zeros([1280, 720,3])
         
     def setBaricenterLimit(self, value):
@@ -127,30 +126,30 @@ class PoseEstimator:
             self.Gui_.ax.set_ylim3d(-1, 1)
             self.Gui_.ax.set_zlim3d(-1, 1)
             
-            waist_xaxis, waist_yaxis, waist_zaxis = self.Pose2Angles.BodyAxes(leftHip = leftHip)
+            waist_xaxis, waist_yaxis, waist_zaxis = Pose2Angles.BodyAxes(leftHip = leftHip)
             # self.Gui_.BodyReferenceFrame(waist_xaxis, waist_yaxis, waist_zaxis)
             
-            chest_xaxis, chest_yaxis, chest_zaxis = self.Pose2Angles.BackAxes(left_shoulder_point=leftShoulder, chest=Chest)
+            chest_xaxis, chest_yaxis, chest_zaxis = Pose2Angles.BackAxes(left_shoulder_point=leftShoulder, chest=Chest)
             # self.Gui_.ChestReferenceFrame(chest_xaxis, chest_yaxis, chest_zaxis, chest=Chest)
             # self.Gui_.DrawTrunk(trunk_point=[Chest,Hip,leftHip,rightHip])
             
-            chest_LR, chest_FB, chest_Rot = self.Pose2Angles.BackAngles(waist_xaxis, waist_yaxis, waist_zaxis, chest_xaxis, chest_yaxis, chest_zaxis)
+            chest_LR, chest_FB, chest_Rot = Pose2Angles.BackAngles(waist_xaxis, waist_yaxis, waist_zaxis, chest_xaxis, chest_yaxis, chest_zaxis)
             
-            rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW = self.Pose2Angles.ShoulderAngles(rightShoulder,rightElbow,leftShoulder,leftElbow,chest_zaxis, chest_xaxis)
+            rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW = Pose2Angles.ShoulderAngles(rightShoulder,rightElbow,leftShoulder,leftElbow,chest_zaxis, chest_xaxis)
             # self.Gui_.DrawElbowLine(rightShoulder,rightElbow,leftShoulder,leftElbow)
             
-            re_flexion, le_flexion = self.Pose2Angles.ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist)
+            re_flexion, le_flexion = Pose2Angles.ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist)
             # self.Gui_.DrawWristLine(rightWrist,rightElbow,leftWrist,leftElbow)
             
-            rw_flexion_UD, lw_flexion_UD, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = self.Pose2Angles.WristAngles(rightElbow, rightWrist, rightHand, rightIndex, rightPinky, leftElbow, leftWrist, leftHand, leftIndex, leftPinky)
+            rw_flexion_UD, lw_flexion_UD, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = Pose2Angles.WristAngles(rightElbow, rightWrist, rightHand, rightIndex, rightPinky, leftElbow, leftWrist, leftHand, leftIndex, leftPinky)
             # self.Gui_.DrawHandLine(rightWrist,rightHand,leftWrist,leftHand)
             # self.Gui_.DrawHandaxes(leftWrist,leftWristLine,leftPalmLine,leftOrthogonalPalmLine)
             # self.Gui_.DrawHandaxes(rightWrist,rightWristLine,rightPalmLine,rightOrthogonalPalmLine)        
             
-            rk_flexion, lk_flexion = self.Pose2Angles.KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle)
+            rk_flexion, lk_flexion = Pose2Angles.KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle)
             # self.Gui_.DrawKneeLine(rightKnee, leftKnee, rightHip, leftHip)
             # self.Gui_.DrawFootLine(rightKnee, leftKnee, rightAnkle, leftAnkle)
-            contact_points, knee_difference = self.Pose2Angles.ComputeContactPoints(rk_flexion, lk_flexion, self.max_knee_difference, rightAnkle, leftAnkle, Hip, self.min_baricenter_position, self.max_baricenter_position)
+            contact_points, knee_difference = Pose2Angles.ComputeContactPoints(rk_flexion, lk_flexion, self.max_knee_difference, rightAnkle, leftAnkle, Hip, self.min_baricenter_position, self.max_baricenter_position)
             # self.Gui_.DrawBaricenterLine(rightAnkle, leftAnkle, Hip)
 
             # Estimation of the camera parameters
@@ -164,8 +163,6 @@ class PoseEstimator:
             # face_3d[0][0], face_3d[0][1], face_3d[0][2]+3000 -> means a point placed further in the z direction in the nose reference frame
             nose_3d_projection, jacobian = cv2.projectPoints((face_3d[0][0], face_3d[0][1], face_3d[0][2]+1000), rot_vec, trans_vec, cam_matrix, dist_matrix)
             
-            # _3DCoordinateFrame(self.image, rot_vec, trans_vec, cam_matrix, dist_matrix) 
-
             face_3d = np.concatenate((face_3d, np.array(([[face_3d[0][0], face_3d[0][1], face_3d[0][2]+100]]))), axis=0)
 
             # self.Gui_.Draw3DFace(face_3d) # one 
@@ -173,7 +170,7 @@ class PoseEstimator:
             Rmat,_ = cv2.Rodrigues(rot_vec)
             angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(Rmat) # this function implements the results written in the paper RotationMatrixToRollPitchYaw
             
-            ###################################### Write things on image ##############################
+            ###################################### Modify the image ##############################
             
             p1 = np.array([nose_2d[0], nose_2d[1]], dtype=int)
             p2 = np.array([nose_3d_projection[0][0][0] , nose_3d_projection[0][0][1]], dtype=int)
@@ -188,7 +185,7 @@ class PoseEstimator:
             _3Dorigin = np.array([face_3d[0][0], face_3d[0][1], face_3d[0][2]])
             _2Dorigin = np.array([nose_2d[0], nose_2d[1]], dtype=int)
             
-            _3DCoordinateFrame(self.image, _2Dorigin ,_3Dorigin, rot_vec, trans_vec, cam_matrix, dist_matrix)
+            Face3DCoordinateFrame(self.image, _2Dorigin ,_3Dorigin, rot_vec, trans_vec, cam_matrix, dist_matrix)
                     
             
             cv2.putText(self.image, f't: {np.round(knee_difference,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)

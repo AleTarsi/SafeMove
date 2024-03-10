@@ -14,7 +14,7 @@ class Gui:
                              xlim=(-2.5, 2.5), ylim=(-2.5, 2.5),projection='3d')
                 
         self.ax.grid(visible=True, which='both')
-        
+    
     def drawLandmark(self, image, pose_landmarks, NN):
         mp_drawing = mp.solutions.drawing_utils
         # drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)

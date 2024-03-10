@@ -4,7 +4,7 @@ from sm_00_utils import normalize, bcolors
 
 class Pose2Angles:
 
-    def BodyAxes(self, leftHip):
+    def BodyAxes(leftHip):
         '''
         Return three axes with magnitude 0.5 centered in zero and orientated as the Waist of the person.
         '''
@@ -22,7 +22,7 @@ class Pose2Angles:
 
         return body_xaxis, body_yaxis, body_zaxis
     
-    def BackAxes(self, left_shoulder_point, chest):
+    def BackAxes(left_shoulder_point, chest):
         '''
         Return three axes with magnitude 0.5 centered in zero and orientated as the chest of the person.
         '''
@@ -39,7 +39,7 @@ class Pose2Angles:
         
         return shoulder_xaxis, shoulder_yaxis, shoulder_zaxis
     
-    def BackAngles(self, body_xaxis, body_yaxis, body_zaxis, chest_xaxis, chest_yaxis, chest_zaxis):
+    def BackAngles(body_xaxis, body_yaxis, body_zaxis, chest_xaxis, chest_yaxis, chest_zaxis):
         
         if np.cross(chest_xaxis,body_xaxis)[2]>= 0: # if the cross product points upward 
             sign_LR = 1
@@ -51,7 +51,7 @@ class Pose2Angles:
             
         return chest_LR, chest_FB, chest_Rot
 
-    def ShoulderAngles(self, rightShoulder, rightElbow, leftShoulder, leftElbow, chest_zaxis, chest_xaxis):
+    def ShoulderAngles(rightShoulder, rightElbow, leftShoulder, leftElbow, chest_zaxis, chest_xaxis):
         '''
         rs: right shoulder
         ls: left shoulder
@@ -68,7 +68,7 @@ class Pose2Angles:
         
         return rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW
     
-    def ElbowAngles(self, rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist):
+    def ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist):
         '''
         re: right elbow
         le: left elbow
@@ -83,7 +83,7 @@ class Pose2Angles:
         
         return re_flexion, le_flexion
     
-    def WristAngles(self, rightElbow, rightWrist, rightHand, rightIndex, rightPinky, leftElbow, leftWrist, leftHand, leftIndex, leftPinky):
+    def WristAngles(rightElbow, rightWrist, rightHand, rightIndex, rightPinky, leftElbow, leftWrist, leftHand, leftIndex, leftPinky):
         '''
         rw: right wrist
         lw: left wrist
@@ -113,7 +113,7 @@ class Pose2Angles:
         
         pass
 
-    def KneeAngles(self, rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle):
+    def KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle):
         '''
         rk: right knee
         lk: left knee
@@ -132,7 +132,7 @@ class Pose2Angles:
         
         return rk_flexion, lk_flexion
     
-    def ComputeContactPoints(self, rk_flexion, lk_flexion, max_knee_difference, rightAnkle, leftAnkle, Hip, min_baricenter_position, max_baricenter_position):
+    def ComputeContactPoints(rk_flexion, lk_flexion, max_knee_difference, rightAnkle, leftAnkle, Hip, min_baricenter_position, max_baricenter_position):
         ############################### Computation of number of Contact points ###########################################
                 
                 '''

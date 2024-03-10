@@ -156,7 +156,7 @@ def ImageCoordinateFrame(image):
     cv2.putText(image, 'x', (30,25), cv2.FONT_HERSHEY_SIMPLEX, 1.5, red, 2)
     cv2.putText(image, 'y', (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, green, 2)
 
-def _3DCoordinateFrame(image, _2D_Origin, _3D_Origin, rot_vec, trans_vec, cam_matrix, dist_matrix):
+def Face3DCoordinateFrame(image, _2D_Origin, _3D_Origin, rot_vec, trans_vec, cam_matrix, dist_matrix):
     
     VbaseX, _ = cv2.projectPoints((_3D_Origin[0]+300, _3D_Origin[1], _3D_Origin[2]), rot_vec, trans_vec, cam_matrix, dist_matrix)
     VbaseY, _ = cv2.projectPoints((_3D_Origin[0], _3D_Origin[1]+300, _3D_Origin[2]), rot_vec, trans_vec, cam_matrix, dist_matrix)

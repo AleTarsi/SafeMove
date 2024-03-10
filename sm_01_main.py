@@ -1,14 +1,9 @@
 import cv2
 import mediapipe as mp
-import numpy as np
 import time
-from sm_02_GUI import Gui
-from sm_05_Pose2Angles import Pose2Angles
 from sm_06_PoseEstimator import PoseEstimator
-from sm_00_utils import ImageCoordinateFrame, _3DCoordinateFrame, myRollWrap, computeMidPosition, fromWorldLandmark2nparray, computeFPS, PoseLandmark
-from sm_03_camera_calibration import camera_calibration
+from sm_00_utils import computeFPS
 import matplotlib.pyplot as plt
-from matplotlib import colors as mcolors
 from sm_04_ResultsLogger import ResultsLogger
             
             
