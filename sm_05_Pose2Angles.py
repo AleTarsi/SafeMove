@@ -1,10 +1,10 @@
 import numpy as np
-from sm_00_utils import normalize
+from sm_00_utils import normalize, bcolors
 
 
-class Computation:
+class Pose2Angles:
 
-    def BodyAxes(self, leftHip):
+    def BodyAxes(leftHip):
         '''
         Return three axes with magnitude 0.5 centered in zero and orientated as the Waist of the person.
         '''
@@ -22,7 +22,7 @@ class Computation:
 
         return body_xaxis, body_yaxis, body_zaxis
     
-    def BackAxes(self, left_shoulder_point, chest):
+    def BackAxes(left_shoulder_point, chest):
         '''
         Return three axes with magnitude 0.5 centered in zero and orientated as the chest of the person.
         '''
@@ -39,7 +39,7 @@ class Computation:
         
         return shoulder_xaxis, shoulder_yaxis, shoulder_zaxis
     
-    def BackAngles(self, body_xaxis, body_yaxis, body_zaxis, chest_xaxis, chest_yaxis, chest_zaxis):
+    def BackAngles(body_xaxis, body_yaxis, body_zaxis, chest_xaxis, chest_yaxis, chest_zaxis):
         
         if np.cross(chest_xaxis,body_xaxis)[2]>= 0: # if the cross product points upward 
             sign_LR = 1
@@ -51,7 +51,7 @@ class Computation:
             
         return chest_LR, chest_FB, chest_Rot
 
-    def ShoulderAngles(self, rightShoulder, rightElbow, leftShoulder, leftElbow, chest_zaxis, chest_xaxis):
+    def ShoulderAngles(rightShoulder, rightElbow, leftShoulder, leftElbow, chest_zaxis, chest_xaxis):
         '''
         rs: right shoulder
         ls: left shoulder
@@ -68,7 +68,7 @@ class Computation:
         
         return rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW
     
-    def ElbowAngles(self, rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist):
+    def ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist):
         '''
         re: right elbow
         le: left elbow
@@ -83,7 +83,7 @@ class Computation:
         
         return re_flexion, le_flexion
     
-    def WristAngles(self, rightElbow, rightWrist, rightHand, rightIndex, rightPinky, leftElbow, leftWrist, leftHand, leftIndex, leftPinky):
+    def WristAngles(rightElbow, rightWrist, rightHand, rightIndex, rightPinky, leftElbow, leftWrist, leftHand, leftIndex, leftPinky):
         '''
         rw: right wrist
         lw: left wrist
@@ -113,7 +113,7 @@ class Computation:
         
         pass
 
-    def KneeAngles(self, rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle):
+    def KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle):
         '''
         rk: right knee
         lk: left knee
@@ -131,3 +131,46 @@ class Computation:
         rk_flexion = np.rad2deg(np.arccos(np.dot(rightkneeLine,rightFeetLine)/(np.linalg.norm(rightkneeLine)*np.linalg.norm(rightFeetLine))))
         
         return rk_flexion, lk_flexion
+    
+    def ComputeContactPoints(rk_flexion, lk_flexion, max_knee_difference, rightAnkle, leftAnkle, Hip, min_baricenter_position, max_baricenter_position):
+        ############################### Computation of number of Contact points ###########################################
+                
+                '''
+                1- Verify whether the knee angles' difference is over a certain threshold as first check
+                2- Verify whether the lateral position of the pelvis are outside a certain threshold as second check
+                3- From these two checks determine the number of contact points
+                '''
+                
+                contact_points = 2
+                
+                #Point 1
+                knee_difference = abs(rk_flexion - lk_flexion)
+                if knee_difference >= max_knee_difference:
+                    contact_points = 1
+                    
+                '''
+                Point 2 
+                - it'd be sufficient to compute the position of the central point of the pelvis wrt the line connecting the feet 
+                - Project the Hip point onto the line connecting the feet, it should be 0.5 the value when the pelvis is in centered 
+                
+                Idea: compute the projection line as described in https://en.wikibooks.org/wiki/Linear_Algebra/Orthogonal_Projection_Onto_a_Line
+                '''
+                #Point 2
+                InitialPoint = rightAnkle
+                FinalPoint = leftAnkle
+                FinalPoint[2] = InitialPoint[2] # We set the y-cordinate to the same. Look in trello for the contact point computation theory
+                foot2footLine = FinalPoint - InitialPoint
+                Origin2footLine = Hip - InitialPoint # Hip seat on the origin
+                ProjectionLine = np.dot(Origin2footLine,foot2footLine)/np.dot(foot2footLine,foot2footLine)*foot2footLine
+                
+                # This value should be btw 1 or -1
+                baricenterDirection = np.dot(ProjectionLine,foot2footLine)/(np.linalg.norm(ProjectionLine)*np.linalg.norm(foot2footLine))
+                # print(baricenterDirection)
+                
+                # signed length ration between ProjectionLine and foot2footLine
+                baricenterValue = np.linalg.norm(ProjectionLine)/np.linalg.norm(foot2footLine)*baricenterDirection
+                
+                if baricenterValue < min_baricenter_position or baricenterValue > max_baricenter_position:
+                    contact_points = 1
+                    
+                return contact_points, knee_difference

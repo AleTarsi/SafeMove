@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
+import mediapipe as mp
 import numpy as np
+import cv2
 from sm_00_utils import computeMidPosition
 
 class Gui:
     def __init__(self):
-
 
         #Set up graphical elements
         self.fig = plt.figure()
@@ -13,9 +14,23 @@ class Gui:
                              xlim=(-2.5, 2.5), ylim=(-2.5, 2.5),projection='3d')
                 
         self.ax.grid(visible=True, which='both')
-        
-        
+    
+    def drawLandmark(self, image, pose_landmarks, NN):
+        mp_drawing = mp.solutions.drawing_utils
+        # drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
+        # Render detections
+        mp_drawing.draw_landmarks(image, pose_landmarks, NN.POSE_CONNECTIONS,
+                                mp_drawing.DrawingSpec(color=(245,117,66), thickness=2, circle_radius=2), 
+                                mp_drawing.DrawingSpec(color=(245,66,230), thickness=2, circle_radius=2) 
+                                )
+
+    def showText(self, image, txt, pose): # f'FPS: {int(fps)}'
+        '''
+        Note that pose argument must be a tuple
+        '''
+        cv2.putText(image, txt, pose, cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
+    
     def draw3D(self,landmarks, extraPoint=False):
 
         landmark_point = []
@@ -228,3 +243,19 @@ class Gui:
     def DrawFootLine(self, rightKnee, leftKnee, rightAnkle, leftAnkle):
         self.ax.plot([rightKnee[0], rightAnkle[0]], [rightKnee[1], rightAnkle[1]],zs=[rightKnee[2], rightAnkle[2]], color="blue")
         self.ax.plot([leftKnee[0], leftAnkle[0]], [leftKnee[1], leftAnkle[1]],zs=[leftKnee[2], leftAnkle[2]], color="blue")
+
+    def DrawBaricenterLine(self, rightAnkle, leftAnkle, Hip):
+        InitialPoint = rightAnkle
+        FinalPoint = leftAnkle
+        FinalPoint[2] = InitialPoint[2] # We set the y-cordinate to the same. Look in trello for the contact point computation theory
+        foot2footLine = FinalPoint - InitialPoint
+        Origin2footLine = Hip - InitialPoint # Hip seat on the origin
+        ProjectionLine = np.dot(Origin2footLine,foot2footLine)/np.dot(foot2footLine,foot2footLine)*foot2footLine
+
+        # print(np.dot(Origin2footLine,foot2footLine))
+        self.ax.plot([InitialPoint[0], FinalPoint[0]], [InitialPoint[1], FinalPoint[1]],zs=[InitialPoint[2], FinalPoint[2]], color="orange")
+        self.ax.plot([InitialPoint[0], Origin2footLine[0]], [InitialPoint[1], Origin2footLine[1]],zs=[InitialPoint[2], Origin2footLine[2]], color="black")
+        self.ax.plot([InitialPoint[0], InitialPoint[0] + ProjectionLine[0]], [InitialPoint[1], InitialPoint[1] + ProjectionLine[1]],zs=[InitialPoint[2], InitialPoint[2] + ProjectionLine[2]], color="green")
+
+        self.ax.plot([0, foot2footLine[0]], [0, foot2footLine[1]],zs=[0, foot2footLine[2]], color="purple")
+        self.ax.plot([0, Origin2footLine[0]], [0, Origin2footLine[1]],zs=[0, Origin2footLine[2]], color="brown")
