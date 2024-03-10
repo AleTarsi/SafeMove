@@ -64,8 +64,8 @@ with NN.Pose() as PoseNN: # very important for the sake of computation efficienc
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
             
             PoseEstimator_.set_image(image)
-            print(results)
-            angle_list = PoseEstimator_.run(results, visualizePose=True)
+            # print(results)
+            angle_list = PoseEstimator_.run(results, visualizePose=False)
             
             if angle_list != -1:
                     
@@ -78,7 +78,8 @@ with NN.Pose() as PoseNN: # very important for the sake of computation efficienc
             fps = computeFPS(end,start,speed_up_rate)
             
             PoseEstimator_.Gui_.showText(PoseEstimator_.get_image(), f'FPS: {int(fps)}', (20,450))   
-                
+            
+            PoseEstimator_.Gui_.drawLandmark(image,results.pose_landmarks, NN)
             cv2.imshow('Head Pose Estimation', PoseEstimator_.get_image())
             
             if save_pictures_in_excel:
