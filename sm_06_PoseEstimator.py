@@ -15,7 +15,7 @@ class PoseEstimator:
     def __init__(self):
         self.Gui_ = Gui()
         self.Pose2Angles = Pose2Angles()
-        self.image = np.empty([2,2])
+        self.image = np.zeros([1280, 720,3])
         
     def setBaricenterLimit(self, value):
         """
