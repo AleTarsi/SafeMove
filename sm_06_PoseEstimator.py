@@ -128,7 +128,7 @@ class PoseEstimator:
             re_flexion, le_flexion = Pose2Angles.ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist)
             # self.Gui_.DrawWristLine(rightWrist,rightElbow,leftWrist,leftElbow)
             
-            rw_flexion_UD, lw_flexion_UD, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = Pose2Angles.WristAngles(rightElbow, rightWrist, rightHand, rightIndexKnucle, rightPinkyKnuckle, leftElbow, leftWrist, leftHand, leftIndexKnucle, leftPinkyKnuckle)
+            rw_flexion_UD, lw_flexion_UD, re_rotation_PS, le_rotation_PS, rw_rotation_UR, lw_rotation_UR, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = Pose2Angles.WristAngles(rightElbow, rightWrist, rightHand, rightIndexKnucle, rightPinkyKnuckle, leftElbow, leftWrist, leftHand, leftIndexKnucle, leftPinkyKnuckle)
             # self.Gui_.DrawHandLine(rightWrist,rightHand,leftWrist,leftHand)
             # self.Gui_.DrawHandaxes(leftWrist,leftWristLine,leftPalmLine,leftOrthogonalPalmLine)
             # self.Gui_.DrawHandaxes(rightWrist,rightWristLine,rightPalmLine,rightOrthogonalPalmLine)        
@@ -175,12 +175,12 @@ class PoseEstimator:
             Face3DCoordinateFrame(image, _2Dorigin ,_3Dorigin, rot_vec, trans_vec, cam_matrix, dist_matrix)
                     
             
-            cv2.putText(image, f't: {np.round(knee_difference,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
-            cv2.putText(image, f'contact points: {contact_points}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            cv2.putText(image, f'rw_rotation_UR: {np.round(rw_rotation_UR,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            # cv2.putText(image, f'contact points: {contact_points}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
             # cv2.putText(image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
                      
             
-            return angles[1], myRollWrap(angles[0]), angles[2],chest_LR,chest_FB,chest_Rot,rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW,re_flexion,0,le_flexion,0,rw_flexion_UD, 0,lw_flexion_UD,0, rk_flexion, lk_flexion,contact_points,0,0 # index gives us the # of row present in the dataframe, we are writing in a new row the new value of the fields
+            return angles[1], myRollWrap(angles[0]), angles[2],chest_LR,chest_FB,chest_Rot,rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW,re_flexion,re_rotation_PS,le_flexion,le_rotation_PS,rw_flexion_UD, rw_rotation_UR, lw_flexion_UD, lw_rotation_UR, rk_flexion, lk_flexion,contact_points,0,0 # index gives us the # of row present in the dataframe, we are writing in a new row the new value of the fields
         
         else:
             

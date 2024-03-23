@@ -7,6 +7,7 @@ from sm_02_GUI import Gui
 from sm_00_utils import computeFPS
 import matplotlib.pyplot as plt
 from sm_04_ResultsLogger import ResultsLogger
+from sm_07_RiskAssessment import RiskAssessment
             
             
 save_pictures_in_excel = False
@@ -25,7 +26,7 @@ path = current_folder + video_folder + video + ".mp4"
 
 assert os.path.exists(path), f"Video does not exist in the specified path: {path}.mp4"
 
-cap = cv2.VideoCapture(path) # 0 for webcam
+cap = cv2.VideoCapture(0) # 0 for webcam
 # cap = cv2.VideoCapture(0) # 0 for webcam
 
 logger = ResultsLogger(folder_path=current_folder, source_video=video)
@@ -73,8 +74,8 @@ with NN.Pose() as PoseNN: # very important for the sake of computation efficienc
                     
                 time_stamp = count*period_btw_frames
                 
-                logger.error_list.loc[len(logger.error_list.index)] = [time_stamp, *angle_list] # the Asterisk unpack tuples or lists
-                # print(logger.error_list)
+                logger.pose_data.loc[len(logger.pose_data.index)] = [time_stamp, *angle_list] # the Asterisk unpack tuples or lists
+                # print(logger.pose_data)
                 
                 if visualizePose:
                     gui.draw3D(results.pose_world_landmarks)
@@ -99,7 +100,9 @@ with NN.Pose() as PoseNN: # very important for the sake of computation efficienc
         cap.release()
         
     finally:
-        logger.save_excel(logger.error_list)
+        reba_score = RiskAssessment.fromDataFrame2Reba(logger.pose_data)
+        logger.save_excel(logger.pose_data, reba_score)
+        
 
 
 
