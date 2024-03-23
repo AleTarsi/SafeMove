@@ -14,6 +14,12 @@ class Gui:
                              xlim=(-2.5, 2.5), ylim=(-2.5, 2.5),projection='3d')
                 
         self.ax.grid(visible=True, which='both')
+        
+    def clear(self):
+        self.ax.cla()
+        self.ax.set_xlim3d(-1, 1)
+        self.ax.set_ylim3d(-1, 1)
+        self.ax.set_zlim3d(-1, 1)
     
     def drawLandmark(self, image, pose_landmarks, NN):
         mp_drawing = mp.solutions.drawing_utils

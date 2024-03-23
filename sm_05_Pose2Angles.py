@@ -87,6 +87,8 @@ class Pose2Angles:
         '''
         rw: right wrist
         lw: left wrist
+        re: right elbow
+        le: left elbow
         Observation: Here you cannot use the arccosine wrt a line going further the writst as you can twist your wrist laterally and UD, you need to use arcsin with a line poining up your wrist
         '''
         
@@ -97,21 +99,24 @@ class Pose2Angles:
         4- Use that orthogonal direction to compute the wrist UD angle. As the line
         '''
         
+        up_direction = np.array([0,0,1.0]) # Line pointing up in the world reference frame, it is used to compute the 
         rightHandLine = normalize(rightHand - rightWrist) # line connecting the wrist and the hand centered in zero
         rightWristLine = normalize(rightWrist - rightElbow) # line connecting the elbow and the wrist centered in zero
         rightPalmLine = normalize(rightIndex - rightPinky) # line connecting the pinky and the index centered in zero
         rightOrthogonalPalmLine = normalize(np.cross(rightWristLine, rightPalmLine))
         rw_flexion_UD = np.rad2deg(np.arcsin(np.dot(rightHandLine,rightOrthogonalPalmLine)/(np.linalg.norm(rightHandLine)*np.linalg.norm(rightOrthogonalPalmLine))))
+        re_rotation_PS = np.rad2deg(-np.arcsin(np.dot(rightPalmLine,up_direction)/(np.linalg.norm(rightPalmLine)))) # there is a minus because a rotation toward the body must be positive
+        rw_rotation_UR = np.rad2deg(np.arccos(np.dot(rightPalmLine,rightWristLine)/(np.linalg.norm(rightPalmLine)*np.linalg.norm(rightWristLine))))
         
         leftHandLine = normalize(leftHand - leftWrist) # line connecting the wrist and the hand centered in zero
         leftWristLine = normalize(leftWrist - leftElbow) # line connecting the elbow and the shoulder centered in zero
         leftPalmLine = normalize(leftIndex - leftPinky)
         leftOrthogonalPalmLine = normalize(np.cross(leftWristLine, -leftPalmLine))
         lw_flexion_UD = np.rad2deg(np.arcsin(np.dot(leftHandLine,leftOrthogonalPalmLine)/(np.linalg.norm(leftHandLine)*np.linalg.norm(leftOrthogonalPalmLine))))
+        le_rotation_PS = np.rad2deg(-np.arcsin(np.dot(leftPalmLine,up_direction)/(np.linalg.norm(leftPalmLine)))) # there is a minus because a rotation toward the body must be positive
+        lw_rotation_UR = np.rad2deg(np.arccos(np.dot(leftPalmLine,leftWristLine)/(np.linalg.norm(leftPalmLine)*np.linalg.norm(leftWristLine))))
         
-        return rw_flexion_UD, lw_flexion_UD, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine
-        
-        pass
+        return rw_flexion_UD, lw_flexion_UD, re_rotation_PS, le_rotation_PS, rw_rotation_UR, lw_rotation_UR, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine
 
     def KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle):
         '''

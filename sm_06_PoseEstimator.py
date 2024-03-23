@@ -11,10 +11,6 @@ from matplotlib import colors as mcolors
 from sm_04_ResultsLogger import ResultsLogger
 
 class PoseEstimator:
-    
-    def __init__(self):
-        self.Gui_ = Gui()
-        self.image = np.zeros([1280, 720,3])
         
     def setBaricenterLimit(self, value):
         """
@@ -26,18 +22,13 @@ class PoseEstimator:
     def setMaxKneeDifference(self, value):
         self.max_knee_difference = value
         
-    def set_image(self, image):
-        self.image = image
-        
-    def get_image(self):
-        return self.image
     
-    def run(self, results, visualizePose=True):
+    def run(self, image, results, visualizePose=True):
         
         ############################ Extraction Phase  ####################################      
         if results.pose_landmarks:
             
-            img_h, img_w, img_c = self.image.shape
+            img_h, img_w, img_c = image.shape
             
             face_2d = []
             
@@ -99,19 +90,19 @@ class PoseEstimator:
             leftElbow = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_ELBOW])
             rightWrist = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_WRIST])
             leftWrist = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_WRIST])
-            rightPinky = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_PINKY])
-            rightIndex = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_INDEX])
+            rightPinkyKnuckle = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_PINKY])
+            rightIndexKnucle = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_INDEX])
             
             try:
-                rightHand = computeMidPosition(rightPinky,rightIndex)[0]
+                rightHand = computeMidPosition(rightPinkyKnuckle,rightIndexKnucle)[0]
             except:
                 print("Some problems computing R. Hand pose")
             
-            leftPinky = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_PINKY])
-            leftIndex = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_INDEX])
+            leftPinkyKnuckle = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_PINKY])
+            leftIndexKnucle = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_INDEX])
             
             try:
-                leftHand = computeMidPosition(leftPinky,leftIndex)[0]
+                leftHand = computeMidPosition(leftPinkyKnuckle,leftIndexKnucle)[0]
             except:
                 print("Some problems computing L. Hand pose")
                 
@@ -121,11 +112,7 @@ class PoseEstimator:
             rightAnkle = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_ANKLE])
                                                 
             ###########################   Angle computation Phase and subPlots ###########################################      
-            self.Gui_.ax.cla()
-            self.Gui_.ax.set_xlim3d(-1, 1)
-            self.Gui_.ax.set_ylim3d(-1, 1)
-            self.Gui_.ax.set_zlim3d(-1, 1)
-            
+
             waist_xaxis, waist_yaxis, waist_zaxis = Pose2Angles.BodyAxes(leftHip = leftHip)
             # self.Gui_.BodyReferenceFrame(waist_xaxis, waist_yaxis, waist_zaxis)
             
@@ -141,7 +128,7 @@ class PoseEstimator:
             re_flexion, le_flexion = Pose2Angles.ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist)
             # self.Gui_.DrawWristLine(rightWrist,rightElbow,leftWrist,leftElbow)
             
-            rw_flexion_UD, lw_flexion_UD, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = Pose2Angles.WristAngles(rightElbow, rightWrist, rightHand, rightIndex, rightPinky, leftElbow, leftWrist, leftHand, leftIndex, leftPinky)
+            rw_flexion_UD, lw_flexion_UD, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = Pose2Angles.WristAngles(rightElbow, rightWrist, rightHand, rightIndexKnucle, rightPinkyKnuckle, leftElbow, leftWrist, leftHand, leftIndexKnucle, leftPinkyKnuckle)
             # self.Gui_.DrawHandLine(rightWrist,rightHand,leftWrist,leftHand)
             # self.Gui_.DrawHandaxes(leftWrist,leftWristLine,leftPalmLine,leftOrthogonalPalmLine)
             # self.Gui_.DrawHandaxes(rightWrist,rightWristLine,rightPalmLine,rightOrthogonalPalmLine)        
@@ -176,21 +163,21 @@ class PoseEstimator:
             p2 = np.array([nose_3d_projection[0][0][0] , nose_3d_projection[0][0][1]], dtype=int)
                     
             for idx, point in enumerate(face_2d):
-                cv2.circle(self.image, (int(point[0]), int(point[1])), 3, (0,0,255), 3)
+                cv2.circle(image, (int(point[0]), int(point[1])), 3, (0,0,255), 3)
                     
-            cv2.line(self.image, p1, p2, (255, 0, 0), 3)
+            cv2.line(image, p1, p2, (255, 0, 0), 3)
             
-            ImageCoordinateFrame(self.image)
+            ImageCoordinateFrame(image)
             
             _3Dorigin = np.array([face_3d[0][0], face_3d[0][1], face_3d[0][2]])
             _2Dorigin = np.array([nose_2d[0], nose_2d[1]], dtype=int)
             
-            Face3DCoordinateFrame(self.image, _2Dorigin ,_3Dorigin, rot_vec, trans_vec, cam_matrix, dist_matrix)
+            Face3DCoordinateFrame(image, _2Dorigin ,_3Dorigin, rot_vec, trans_vec, cam_matrix, dist_matrix)
                     
             
-            cv2.putText(self.image, f't: {np.round(knee_difference,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
-            cv2.putText(self.image, f'contact points: {contact_points}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
-            # cv2.putText(self.image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
+            cv2.putText(image, f't: {np.round(knee_difference,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            cv2.putText(image, f'contact points: {contact_points}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            # cv2.putText(image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
                      
             
             return angles[1], myRollWrap(angles[0]), angles[2],chest_LR,chest_FB,chest_Rot,rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW,re_flexion,0,le_flexion,0,rw_flexion_UD, 0,lw_flexion_UD,0, rk_flexion, lk_flexion,contact_points,0,0 # index gives us the # of row present in the dataframe, we are writing in a new row the new value of the fields
