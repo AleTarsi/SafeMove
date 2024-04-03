@@ -54,6 +54,31 @@ class PoseLandmark():
   LEFT_FOOT_INDEX = 31
   RIGHT_FOOT_INDEX = 32
   
+class HandLandmark():
+  """The 21 hand landmarks."""
+
+  WRIST = 0
+  THUMB_CMC = 1
+  THUMB_MCP = 2
+  THUMB_IP = 3
+  THUMB_TIP = 4
+  INDEX_FINGER_MCP = 5
+  INDEX_FINGER_PIP = 6
+  INDEX_FINGER_DIP = 7
+  INDEX_FINGER_TIP = 8
+  MIDDLE_FINGER_MCP = 9
+  MIDDLE_FINGER_PIP = 10
+  MIDDLE_FINGER_DIP = 11
+  MIDDLE_FINGER_TIP = 12
+  RING_FINGER_MCP = 13
+  RING_FINGER_PIP = 14
+  RING_FINGER_DIP = 15
+  RING_FINGER_TIP = 16
+  PINKY_MCP = 17
+  PINKY_PIP = 18
+  PINKY_DIP = 19
+  PINKY_TIP = 20
+  
 def computeFPS(end,start,frames_to_skip):
     totalTime = end - start
 
@@ -167,7 +192,10 @@ def Face3DCoordinateFrame(image, _2D_Origin, _3D_Origin, rot_vec, trans_vec, cam
     cv2.line(image, np.array([_2D_Origin[0] , _2D_Origin[1]], dtype=int), np.array([VbaseZ[0][0][0] , VbaseZ[0][0][1]], dtype=int), blue, 3)
     
 def normalize(vect):
-    return vect/np.linalg.norm(vect)
+    try:
+        return vect/np.linalg.norm(vect)
+    except:
+        return np.zeros(3)
 
 def from_image_name_2_excel_row_value(file):
     removingPNGextensions = file[:-4]

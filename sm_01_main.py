@@ -30,14 +30,14 @@ cap = cv2.VideoCapture(0) # 0 for webcam
 # cap = cv2.VideoCapture(0) # 0 for webcam
 
 logger = ResultsLogger(folder_path=current_folder, source_video=video)
-NN = mp.solutions.pose
+NN = mp.solutions.holistic #mp.solutions.pose
 
-NN.Pose(static_image_mode=False,
+NN.Holistic(static_image_mode=False,
         model_complexity=2,
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5)
 
-with NN.Pose() as PoseNN: # very important for the sake of computation efficiency, not sure why though.
+with NN.Holistic() as PoseNN: # very important for the sake of computation efficiency, not sure why though.
     try: 
         gui = Gui()
         poseEstimator = PoseEstimator()
@@ -79,7 +79,7 @@ with NN.Pose() as PoseNN: # very important for the sake of computation efficienc
                 
                 if visualizePose:
                     gui.draw3D(results.pose_world_landmarks)
-                    gui.drawLandmark(image,results.pose_landmarks, NN)
+                    gui.drawLandmark(image,results.pose_landmarks, results.left_hand_landmarks, results.right_hand_landmarks, NN)
                 
             end = time.time()
             fps = computeFPS(end,start,speed_up_rate)

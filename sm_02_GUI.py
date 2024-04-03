@@ -21,8 +21,9 @@ class Gui:
         self.ax.set_ylim3d(-1, 1)
         self.ax.set_zlim3d(-1, 1)
     
-    def drawLandmark(self, image, pose_landmarks, NN):
+    def drawLandmark(self, image, pose_landmarks, left_hand, right_hand, NN):
         mp_drawing = mp.solutions.drawing_utils
+        mp_drawing_styles = mp.solutions.drawing_styles
         # drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
         # Render detections
@@ -30,6 +31,14 @@ class Gui:
                                 mp_drawing.DrawingSpec(color=(245,117,66), thickness=2, circle_radius=2), 
                                 mp_drawing.DrawingSpec(color=(245,66,230), thickness=2, circle_radius=2) 
                                 )
+        
+        mp_drawing.draw_landmarks(image, left_hand, NN.HAND_CONNECTIONS, 
+            mp_drawing_styles.get_default_hand_landmarks_style(),
+            mp_drawing_styles.get_default_hand_connections_style())
+        
+        mp_drawing.draw_landmarks(image, right_hand, NN.HAND_CONNECTIONS,
+                mp_drawing_styles.get_default_hand_landmarks_style(),
+                mp_drawing_styles.get_default_hand_connections_style())
 
     def showText(self, image, txt, pose): # f'FPS: {int(fps)}'
         '''

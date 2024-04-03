@@ -4,7 +4,7 @@ import numpy as np
 import time
 from sm_02_GUI import Gui
 from sm_05_Pose2Angles import Pose2Angles
-from sm_00_utils import faceModel3D, ImageCoordinateFrame, Face3DCoordinateFrame, myRollWrap, computeMidPosition, fromWorldLandmark2nparray, PoseLandmark
+from sm_00_utils import faceModel3D, ImageCoordinateFrame, Face3DCoordinateFrame, myRollWrap, computeMidPosition, fromWorldLandmark2nparray, PoseLandmark, HandLandmark
 from sm_03_camera_calibration import camera_calibration
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
@@ -33,7 +33,7 @@ class PoseEstimator:
             face_2d = []
             
             landmarks = results.pose_landmarks.landmark
-            world_landmarks = results.pose_world_landmarks.landmark                    
+            world_landmarks = results.pose_world_landmarks.landmark      
             
             idx = PoseLandmark.NOSE
             nose_2d = (landmarks[idx].x*img_w, landmarks[idx].y*img_h)
@@ -90,27 +90,12 @@ class PoseEstimator:
             leftElbow = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_ELBOW])
             rightWrist = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_WRIST])
             leftWrist = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_WRIST])
-            rightPinkyKnuckle = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_PINKY])
-            rightIndexKnucle = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_INDEX])
-            
-            try:
-                rightHand = computeMidPosition(rightPinkyKnuckle,rightIndexKnucle)[0]
-            except:
-                print("Some problems computing R. Hand pose")
-            
-            leftPinkyKnuckle = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_PINKY])
-            leftIndexKnucle = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_INDEX])
-            
-            try:
-                leftHand = computeMidPosition(leftPinkyKnuckle,leftIndexKnucle)[0]
-            except:
-                print("Some problems computing L. Hand pose")
                 
             leftKnee = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_KNEE])
             rightKnee = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_KNEE])
             leftAnkle = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.LEFT_ANKLE])
             rightAnkle = fromWorldLandmark2nparray(world_landmarks[PoseLandmark.RIGHT_ANKLE])
-                                                
+                
             ###########################   Angle computation Phase and subPlots ###########################################      
 
             waist_xaxis, waist_yaxis, waist_zaxis = Pose2Angles.BodyAxes(leftHip = leftHip)
@@ -128,10 +113,42 @@ class PoseEstimator:
             re_flexion, le_flexion = Pose2Angles.ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist)
             # self.Gui_.DrawWristLine(rightWrist,rightElbow,leftWrist,leftElbow)
             
-            rw_flexion_UD, lw_flexion_UD, re_rotation_PS, le_rotation_PS, rw_rotation_UR, lw_rotation_UR, leftWristLine, leftPalmLine, leftOrthogonalPalmLine, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = Pose2Angles.WristAngles(rightElbow, rightWrist, rightHand, rightIndexKnucle, rightPinkyKnuckle, leftElbow, leftWrist, leftHand, leftIndexKnucle, leftPinkyKnuckle)
-            # self.Gui_.DrawHandLine(rightWrist,rightHand,leftWrist,leftHand)
-            # self.Gui_.DrawHandaxes(leftWrist,leftWristLine,leftPalmLine,leftOrthogonalPalmLine)
-            # self.Gui_.DrawHandaxes(rightWrist,rightWristLine,rightPalmLine,rightOrthogonalPalmLine)        
+            if results.right_hand_landmarks:                              
+                r_hand_landmarks = results.right_hand_landmarks.landmark       
+                
+                rightPinkyKnuckle = fromWorldLandmark2nparray(r_hand_landmarks[HandLandmark.PINKY_MCP])
+                rightIndexKnucle = fromWorldLandmark2nparray(r_hand_landmarks[HandLandmark.INDEX_FINGER_MCP])
+                
+                try:
+                    rightHand = computeMidPosition(rightPinkyKnuckle,rightIndexKnucle)[0]
+                except:
+                    print("Some problems computing R. Hand pose")
+                
+                rw_flexion_UD, re_rotation_PS, rw_rotation_UR, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = Pose2Angles.WristAngles(rightElbow, rightWrist, rightHand, rightIndexKnucle, rightPinkyKnuckle)
+                # self.Gui_.DrawHandLine(rightWrist,rightHand,leftWrist,leftHand)
+                # self.Gui_.DrawHandaxes(rightWrist,rightWristLine,rightPalmLine,rightOrthogonalPalmLine)        
+                
+            else:
+                rw_flexion_UD, re_rotation_PS, rw_rotation_UR = np.zeros(3)
+                
+            
+            if results.left_hand_landmarks:
+                l_hand_landmarks = results.left_hand_landmarks.landmark
+                
+                leftPinkyKnuckle = fromWorldLandmark2nparray(l_hand_landmarks[HandLandmark.PINKY_MCP])
+                leftIndexKnucle = fromWorldLandmark2nparray(l_hand_landmarks[HandLandmark.INDEX_FINGER_MCP])
+                
+                try:
+                    leftHand = computeMidPosition(leftPinkyKnuckle,leftIndexKnucle)[0]
+                except:
+                    print("Some problems computing L. Hand pose")
+            
+                lw_flexion_UD, le_rotation_PS, lw_rotation_UR, leftWristLine, leftPalmLine, leftOrthogonalPalmLine = Pose2Angles.WristAngles(leftElbow, leftWrist, leftHand, leftIndexKnucle, leftPinkyKnuckle)
+                # self.Gui_.DrawHandLine(rightWrist,rightHand,leftWrist,leftHand)
+                # self.Gui_.DrawHandaxes(leftWrist,leftWristLine,leftPalmLine,leftOrthogonalPalmLine)     
+                
+            else:
+                lw_flexion_UD, le_rotation_PS, lw_rotation_UR = np.zeros(3)
             
             rk_flexion, lk_flexion = Pose2Angles.KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle)
             # self.Gui_.DrawKneeLine(rightKnee, leftKnee, rightHip, leftHip)
