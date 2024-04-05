@@ -70,9 +70,10 @@ class ResultsLogger:
       cv2.imwrite(tmp_path + img_name, img) 
     
     
-  def save_excel(self, dataframe, reba_score):
+  def save_excel(self, dataframe, reba_score, aggregated_reba_score):
     dataframe.to_excel(self.writer, sheet_name='SafeMoveResults')
-    reba_score.to_excel(self.writer, sheet_name='RangeComputation')
+    reba_score.to_excel(self.writer, sheet_name='ScoreComputation')
+    aggregated_reba_score.to_excel(self.writer, sheet_name='AggregatedScoreComputation')
     worksheet = self.writer.sheets['SafeMoveResults']
     
     worksheet.set_column("Z:Z", 200)

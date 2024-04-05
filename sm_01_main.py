@@ -20,13 +20,13 @@ count = 0
 current_folder = os.getcwd()
 video_folder ="/videos/"
 ################# Select video here #######################
-video = 'video_05'
+video = 'video_10'
 ###################################################################
 path = current_folder + video_folder + video + ".mp4"
 
 assert os.path.exists(path), f"Video does not exist in the specified path: {path}.mp4"
 
-cap = cv2.VideoCapture(0) # 0 for webcam
+cap = cv2.VideoCapture(path) # 0 for webcam
 # cap = cv2.VideoCapture(0) # 0 for webcam
 
 logger = ResultsLogger(folder_path=current_folder, source_video=video)
@@ -100,8 +100,8 @@ with NN.Holistic() as PoseNN: # very important for the sake of computation effic
         cap.release()
         
     finally:
-        reba_score = RiskAssessment.fromDataFrame2Reba(logger.pose_data)
-        logger.save_excel(logger.pose_data, reba_score)
+        reba_score, aggregated_reba_score = RiskAssessment.fromDataFrame2Reba(logger.pose_data)
+        logger.save_excel(logger.pose_data, reba_score, aggregated_reba_score)
         
 
 
