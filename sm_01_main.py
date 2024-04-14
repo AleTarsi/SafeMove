@@ -1,5 +1,7 @@
 import cv2
 import mediapipe as mp
+import datetime
+import numpy as np
 import os
 import time
 from sm_06_PoseEstimator import PoseEstimator
@@ -29,7 +31,18 @@ assert os.path.exists(path), f"Video does not exist in the specified path: {path
 cap = cv2.VideoCapture(path) # 0 for webcam
 # cap = cv2.VideoCapture(0) # 0 for webcam
 
-logger = ResultsLogger(folder_path=current_folder, source_video=video)
+current_time = datetime.datetime.now()
+output_path = current_folder + '/output/' + video + '/' + str(current_time.year) + '_' + str(current_time.month) + '_' + str(current_time.day) + '__' + str(current_time.hour) + '_' + str(current_time.minute) + '_' + str(current_time.second)
+logger = ResultsLogger(folder_path=current_folder, output_path=output_path)
+
+################## Save Video ####################
+width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) + 0.5)
+height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) + 0.5)
+size = (width, height)
+fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+out = cv2.VideoWriter(output_path + '/' + 'SafeMoveResults.mp4', fourcc, 15.0, size)
+######################################################
+
 NN = mp.solutions.holistic #mp.solutions.pose
 
 NN.Holistic(static_image_mode=False,
@@ -40,7 +53,7 @@ NN.Holistic(static_image_mode=False,
 with NN.Holistic() as PoseNN: # very important for the sake of computation efficiency, not sure why though.
     try: 
         gui = Gui()
-        poseEstimator = PoseEstimator()
+        poseEstimator = PoseEstimator(height, width)
         poseEstimator.setBaricenterLimit(0.8) # value btw 0.0 and 1.0, where 0.0 means you are on one foot any time the hip projection is not in the middle of your feet, and 1.0 you are considered on one foot only if your hip ground projection is over your feet position.
         poseEstimator.setMaxKneeDifference(20) # maximum difference in your knee angles before you are considered on one foot
 
@@ -84,9 +97,11 @@ with NN.Holistic() as PoseNN: # very important for the sake of computation effic
             end = time.time()
             fps = computeFPS(end,start,speed_up_rate)
             
-            gui.showText(image, f'FPS: {int(fps)}', (20,450))   
+            gui.showText(image, f'time: {np.round(time_stamp, decimals=2)}', (10,height-50))   
             
-            cv2.imshow('Head Pose Estimation', image)
+            cv2.imshow('Head Pose Estimation', cv2.resize(image, (int(width*1.5), int(height*1.5))))
+            
+            out.write(image)
             
             if save_pictures_in_excel:
                 logger.add_picture(image,time_stamp, count, PicturesamplingTime=50)
@@ -98,6 +113,7 @@ with NN.Holistic() as PoseNN: # very important for the sake of computation effic
 
 
         cap.release()
+        out.release()
         
     finally:
         reba_score, aggregated_reba_score = RiskAssessment.fromDataFrame2Reba(logger.pose_data)

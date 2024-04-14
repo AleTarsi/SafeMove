@@ -11,15 +11,14 @@ import glob
 
 class ResultsLogger:
   
-  def __init__(self, folder_path, source_video):
-    current_time = datetime.datetime.now()
+  def __init__(self, folder_path, output_path):
     self.folder_path = folder_path
-    excel_path = folder_path + '/excel/' + source_video
-    self.excel_name = excel_path + '/' + str(current_time.year) + '_' + str(current_time.month) + '_' + str(current_time.day) + '__' + str(current_time.hour) + '_' + str(current_time.minute) + '_' + str(current_time.second) + '.xlsx' 
     
     # Create folder if it does not exists
-    if not os.path.exists(excel_path):
-      os.makedirs(excel_path)
+    if not os.path.exists(output_path):
+      os.makedirs(output_path)
+      
+    self.excel_name = output_path + '/SafeMoveResults.xlsx'
     
     self.writer = pd.ExcelWriter(self.excel_name , engine='xlsxwriter')
   

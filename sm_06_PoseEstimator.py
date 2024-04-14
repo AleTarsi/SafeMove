@@ -11,6 +11,10 @@ from matplotlib import colors as mcolors
 from sm_04_ResultsLogger import ResultsLogger
 
 class PoseEstimator:
+    
+    def __init__(self, height, width):
+        self.img_h = height
+        self.img_w = width
         
     def setBaricenterLimit(self, value):
         """
@@ -28,40 +32,38 @@ class PoseEstimator:
         ############################ Extraction Phase  ####################################      
         if results.pose_landmarks:
             
-            img_h, img_w, img_c = image.shape
-            
             face_2d = []
             
             landmarks = results.pose_landmarks.landmark
             world_landmarks = results.pose_world_landmarks.landmark      
             
             idx = PoseLandmark.NOSE
-            nose_2d = (landmarks[idx].x*img_w, landmarks[idx].y*img_h)
+            nose_2d = (landmarks[idx].x*self.img_w, landmarks[idx].y*self.img_h)
             nose = fromWorldLandmark2nparray(world_landmarks[idx])
-            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            face_2d.append([landmarks[idx].x*self.img_w, landmarks[idx].y*self.img_h])
             
             idx = PoseLandmark.LEFT_EYE_OUTER
-            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            face_2d.append([landmarks[idx].x*self.img_w, landmarks[idx].y*self.img_h])
             leftEyeOuter = fromWorldLandmark2nparray(world_landmarks[idx])
             
             idx = PoseLandmark.RIGHT_EYE_OUTER 
-            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            face_2d.append([landmarks[idx].x*self.img_w, landmarks[idx].y*self.img_h])
             rightEyeOuter = fromWorldLandmark2nparray(world_landmarks[idx])
                 
             idx = PoseLandmark.LEFT_EAR
-            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            face_2d.append([landmarks[idx].x*self.img_w, landmarks[idx].y*self.img_h])
             leftEar = fromWorldLandmark2nparray(world_landmarks[idx])
             
             idx = PoseLandmark.RIGHT_EAR
-            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            face_2d.append([landmarks[idx].x*self.img_w, landmarks[idx].y*self.img_h])
             rightEar = fromWorldLandmark2nparray(world_landmarks[idx])
             
             idx = PoseLandmark.MOUTH_LEFT
-            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            face_2d.append([landmarks[idx].x*self.img_w, landmarks[idx].y*self.img_h])
             leftMouth = fromWorldLandmark2nparray(world_landmarks[idx])
             
             idx = PoseLandmark.MOUTH_RIGHT
-            face_2d.append([landmarks[idx].x*img_w, landmarks[idx].y*img_h])
+            face_2d.append([landmarks[idx].x*self.img_w, landmarks[idx].y*self.img_h])
             rightMouth = fromWorldLandmark2nparray(world_landmarks[idx])
             
             # Convert it to the NumPy array
@@ -157,7 +159,7 @@ class PoseEstimator:
             # self.Gui_.DrawBaricenterLine(rightAnkle, leftAnkle, Hip)
 
             # Estimation of the camera parameters
-            focal_length, cam_matrix, dist_matrix = camera_calibration(img_h,img_w)
+            focal_length, cam_matrix, dist_matrix = camera_calibration(self.img_h,self.img_w)
 
             face_3d = faceModel3D()
             # Solve PnP
@@ -192,7 +194,7 @@ class PoseEstimator:
             Face3DCoordinateFrame(image, _2Dorigin ,_3Dorigin, rot_vec, trans_vec, cam_matrix, dist_matrix)
                     
             
-            cv2.putText(image, f'rw_rotation_UR: {np.round(rw_rotation_UR,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+            # cv2.putText(image, f'rw_rotation_UR: {np.round(rw_rotation_UR,1)}', (20,420), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
             # cv2.putText(image, f'contact points: {contact_points}', (20,380), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
             # cv2.putText(image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
                      
