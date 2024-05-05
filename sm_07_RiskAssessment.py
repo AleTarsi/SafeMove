@@ -57,7 +57,7 @@ class RiskAssessment:
                             })
         
         aggregated_reba_score = pd.DataFrame({'t [sec]': [],
-                             'score.head': [],
+                             'score.neck': [],
                              'score.trunk': [],
                              'score.R.shoulder': [],
                              'score.L.shoulder': [],
@@ -70,8 +70,10 @@ class RiskAssessment:
                              'score.wrist': [],
                              'score.R.knee': [],
                              'score.L.knee': [],
-                             'score.knee': [],
+                             'score.legs': [],
                              'score.TableA': [],
+                             'score.TableB': [],
+                             'score.TableC': [],
                             })
         
         # Have a look at the following link to see why we avoided using "in range" function: https://stackoverflow.com/questions/36921951/truth-value-of-a-series-is-ambiguous-use-a-empty-a-bool-a-item-a-any-o
@@ -103,7 +105,7 @@ class RiskAssessment:
         
         aggregated_reba_score['t [sec]'] = pose_data['t [sec]'] 
         sum = reba_score['score.head.rotation.LR [°]'] + reba_score['score.head.flexion.DU [°]'] + reba_score['score.head.flexion.CCWCW [°]']
-        aggregated_reba_score['score.head'] = np.where(sum>3, 3, sum)
+        aggregated_reba_score['score.neck'] = np.where(sum>3, 3, sum)
         aggregated_reba_score['score.trunk'] = reba_score['score.trunk.rotation.LR [°]'] + reba_score['score.trunk.flexion.FB [°]'] + reba_score['score.trunk.flexion.LR [°]']
         aggregated_reba_score['score.R.shoulder'] = reba_score['score.R.shoulder.flexion.FB [°]'] + reba_score['score.R.shoulder.abduction.CWCCW [°]'] 
         aggregated_reba_score['score.L.shoulder'] = reba_score['score.L.shoulder.flexion.FB [°]'] + reba_score['score.L.shoulder.abduction.CWCCW [°]'] 
@@ -116,7 +118,7 @@ class RiskAssessment:
         aggregated_reba_score['score.wrist'] = aggregated_reba_score[['score.R.wrist','score.L.wrist']].max(axis=1)
         aggregated_reba_score['score.R.knee'] = reba_score['score.R.knee.flexion.UD [°]'] + reba_score['score.contact points [#]']
         aggregated_reba_score['score.L.knee'] = reba_score['score.L.knee.flexion.UD [°]'] + reba_score['score.contact points [#]']
-        aggregated_reba_score['score.knee'] = aggregated_reba_score[['score.R.knee','score.L.knee']].max(axis=1)
+        aggregated_reba_score['score.legs'] = aggregated_reba_score[['score.R.knee','score.L.knee']].max(axis=1)
         
         Table_A = np.zeros((3,5,4)) # the first position is for Neck, second position is for trunk, the third position is for legs
         Table_A[0,0,0] = 1
@@ -364,8 +366,15 @@ class RiskAssessment:
         Table_C[11,10] = 12
         Table_C[11,11] = 12
         
-        # for idx in range(len(aggregated_reba_score['score.head'])):
-        #     aggregated_reba_score['score.TableA'].loc[idx] = Table_A[int(aggregated_reba_score['score.head'].loc[idx]-1),int(aggregated_reba_score['score.trunk'].loc[idx]-1),int(aggregated_reba_score['score.knee'].loc[idx]-1)]
+        # pd.melt
+        # pd.factorize
+        
+        pd.options.mode.chained_assignment = None  # default='warn'
+        
+        for idx in range(len(aggregated_reba_score['score.neck'])):
+            aggregated_reba_score['score.TableA'].loc[idx] = Table_A()[str(int(aggregated_reba_score['score.neck'].loc[idx]-1))][str(int(aggregated_reba_score['score.trunk'].loc[idx]-1))][str(int(aggregated_reba_score['score.legs'].loc[idx]-1))]
+            # aggregated_reba_score['score.TableB'].loc[idx] = Table_B[int(aggregated_reba_score['score.neck'].loc[idx]-1),int(aggregated_reba_score['score.trunk'].loc[idx]-1),int(aggregated_reba_score['score.legs'].loc[idx]-1)]
+            
         
         return reba_score, aggregated_reba_score
 
