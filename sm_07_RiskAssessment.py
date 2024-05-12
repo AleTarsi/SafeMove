@@ -129,6 +129,7 @@ class RiskAssessment:
                 aggregated_reba_score['score.TableB'].loc[idx] = Table_B()[str(int(aggregated_reba_score['score.elbows'].loc[idx]-1))+str(int(aggregated_reba_score['score.shoulders'].loc[idx]-1))+str(int(aggregated_reba_score['score.wrists'].loc[idx]-1))]
             except:
                 print("Error computing the Table Value")
+                print("This error is thrown during the unittest due to the first line of the DF which is empty.")
         
         return reba_score, aggregated_reba_score
 

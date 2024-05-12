@@ -11,13 +11,15 @@ import matplotlib.pyplot as plt
 from sm_04_ResultsLogger import ResultsLogger
 from sm_07_RiskAssessment import RiskAssessment
             
-            
+
+###################################################################
 save_pictures_in_excel = False
 visualizePose = True
 speed_up_rate = 1 # integer value greater than 1, it set the number of frames to skip in the video btw one computation and another
 fps_input_video = 30
 period_btw_frames = 1/fps_input_video
 count = 0 
+###################################################################
 
 current_folder = os.getcwd()
 video_folder ="/videos/"
