@@ -74,7 +74,7 @@ class RiskAssessment:
                              'score.legs': [],
                              'score.TableA': [],
                              'score.TableB': [],
-                             'score.TableC': [],
+                            #  'score.TableC': [],
                             })
         
         # Have a look at the following link to see why we avoided using "in range" function: https://stackoverflow.com/questions/36921951/truth-value-of-a-series-is-ambiguous-use-a-empty-a-bool-a-item-a-any-o
@@ -123,10 +123,12 @@ class RiskAssessment:
         
         pd.options.mode.chained_assignment = None  # default='warn'
         
-        # for idx in range(len(aggregated_reba_score['score.neck'])):
-        #     aggregated_reba_score['score.TableA'].loc[idx] = Table_A()[str(int(aggregated_reba_score['score.neck'].loc[idx]-1))+str(int(aggregated_reba_score['score.trunk'].loc[idx]-1))+str(int(aggregated_reba_score['score.legs'].loc[idx]-1))]
-            # aggregated_reba_score['score.TableB'].loc[idx] = Table_B[int(aggregated_reba_score['score.neck'].loc[idx]-1),int(aggregated_reba_score['score.trunk'].loc[idx]-1),int(aggregated_reba_score['score.legs'].loc[idx]-1)]
-            
+        for idx in range(len(aggregated_reba_score['score.neck'])):
+            try:
+                aggregated_reba_score['score.TableA'].loc[idx] = Table_A()[str(int(aggregated_reba_score['score.neck'].loc[idx]-1))+str(int(aggregated_reba_score['score.trunk'].loc[idx]-1))+str(int(aggregated_reba_score['score.legs'].loc[idx]-1))]
+                aggregated_reba_score['score.TableB'].loc[idx] = Table_B()[str(int(aggregated_reba_score['score.elbows'].loc[idx]-1))+str(int(aggregated_reba_score['score.shoulders'].loc[idx]-1))+str(int(aggregated_reba_score['score.wrists'].loc[idx]-1))]
+            except:
+                print("Error computing the Table Value")
         
         return reba_score, aggregated_reba_score
 
