@@ -19,8 +19,13 @@ speed_up_rate = 1 # integer value greater than 1, it set the number of frames to
 fps_input_video = 30
 period_btw_frames = 1/fps_input_video
 count = 0 
+Force = int(input("How much force score 0,1,2 or 3? "))
+assert Force in range(0,4)
+Coupling = int(input("How is the coupling score 0,1,2 or 3? "))
+assert Coupling in range(0,4)
+Activity = int(input("How is the activity score 0,1,2 or 3? "))
+assert Activity in range(0,4)
 ###################################################################
-
 current_folder = os.getcwd()
 video_folder ="/videos/"
 ################# Select video here #######################
@@ -118,7 +123,7 @@ with NN.Holistic() as PoseNN: # very important for the sake of computation effic
         out.release()
         
     finally:
-        reba_score, aggregated_reba_score = RiskAssessment.fromDataFrame2Reba(logger.pose_data)
+        reba_score, aggregated_reba_score = RiskAssessment.fromDataFrame2Reba(logger.pose_data, Force, Coupling, Activity)
         logger.save_excel(logger.pose_data, reba_score, aggregated_reba_score)
         
 

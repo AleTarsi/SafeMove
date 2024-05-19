@@ -29,7 +29,7 @@ def score_knee_flexion_UD(val):
         
 
 class RiskAssessment:
-    def fromDataFrame2Reba(pose_data):
+    def fromDataFrame2Reba(pose_data, Force, Coupling, Activity):
         
         reba_score = pd.DataFrame({'t [sec]': [],
                              'score.head.rotation.LR [°]': [],
@@ -74,7 +74,12 @@ class RiskAssessment:
                              'score.legs': [],
                              'score.TableA': [],
                              'score.TableB': [],
-                            #  'score.TableC': [],
+                             'score.TableA.mean': [],
+                             'score.TableB.mean': [],
+                             'score.TableA.Tot': [],
+                             'score.TableB.Tot': [],
+                             'score.TableC': [],
+                             'score.REBA': [],
                             })
         
         # Have a look at the following link to see why we avoided using "in range" function: https://stackoverflow.com/questions/36921951/truth-value-of-a-series-is-ambiguous-use-a-empty-a-bool-a-item-a-any-o
@@ -130,6 +135,13 @@ class RiskAssessment:
             except:
                 print("Error computing the Table Value")
                 print("This error is thrown during the unittest due to the first line of the DF which is empty.")
+                
+        aggregated_reba_score['score.TableA.mean'] = np.mean(aggregated_reba_score['score.TableA'].to_numpy())
+        aggregated_reba_score['score.TableB.mean'] = np.mean(aggregated_reba_score['score.TableB'].to_numpy())
+        aggregated_reba_score['score.TableA.Tot'] = aggregated_reba_score['score.TableA.mean'] + Force
+        aggregated_reba_score['score.TableB.Tot'] = aggregated_reba_score['score.TableB.mean'] + Coupling
+        aggregated_reba_score['score.TableC'] = Table_C()[str(int(aggregated_reba_score['score.TableA.Tot'][0])-1)+str(int(aggregated_reba_score['score.TableB.Tot'][0])-1)]
+        aggregated_reba_score['score.REBA'] = aggregated_reba_score['score.TableC'] + Activity
         
         return reba_score, aggregated_reba_score
 
