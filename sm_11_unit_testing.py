@@ -17,7 +17,7 @@ def inference_test():
     gt['Scores'] = gt_scores
     gt['Reba'] = gt_reba
     gt['Extra'] = gt_extra
-    results['Scores'], results['Reba'] = RiskAssessment.fromDataFrame2Reba(gt['Angles'])
+    results['Scores'], results['Reba'] = RiskAssessment.fromDataFrame2Reba(gt['Angles'], Force=3, Coupling=2, Activity=1) # We hardcoded these values also in the excel
     return results, gt
 
 class SafeMoveTest(unittest.TestCase):
@@ -36,10 +36,13 @@ class SafeMoveTest(unittest.TestCase):
 
         for idx in range(1, groundtruth['Reba'].to_numpy().shape[0]): # Start from 1 because the first line does not contain data
             if verbose:
-                print(idx, groundtruth['Reba'].iloc[idx].to_numpy(), results['Reba'].iloc[idx].to_numpy()) 
-                print("\n\n")
-
-            self.assertTrue(np.array_equal(groundtruth['Reba'].iloc[idx-1].to_numpy(), results['Reba'].iloc[idx].to_numpy())) 
-            
+                    print(idx, groundtruth['Reba'].iloc[idx].to_numpy(), results['Reba'].iloc[idx].to_numpy()) 
+                    print("\n\n")
+                    
+            if idx == 1:
+                self.assertTrue(np.array_equal(groundtruth['Reba'].iloc[idx].to_numpy(), results['Reba'].iloc[idx].to_numpy())) 
+            else:
+                self.assertTrue(np.array_equal(groundtruth['Reba'].iloc[idx].to_numpy()[:17], results['Reba'].iloc[idx].to_numpy()[:17])) # The empty cells in one format are considered as 0, and in the other format are considered as NaN. Thus, we prune them
+                
 if __name__ == '__main__':
     unittest.main()

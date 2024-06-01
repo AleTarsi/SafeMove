@@ -130,18 +130,25 @@ class RiskAssessment:
         
         for idx in range(len(aggregated_reba_score['score.neck'])):
             try:
+                # We subtract 1, because we started to count from 0 in the tables
                 aggregated_reba_score['score.TableA'].loc[idx] = Table_A()[str(int(aggregated_reba_score['score.neck'].loc[idx]-1))+str(int(aggregated_reba_score['score.trunk'].loc[idx]-1))+str(int(aggregated_reba_score['score.legs'].loc[idx]-1))]
                 aggregated_reba_score['score.TableB'].loc[idx] = Table_B()[str(int(aggregated_reba_score['score.elbows'].loc[idx]-1))+str(int(aggregated_reba_score['score.shoulders'].loc[idx]-1))+str(int(aggregated_reba_score['score.wrists'].loc[idx]-1))]
             except:
                 print("Error computing the Table Value")
                 print("This error is thrown during the unittest due to the first line of the DF which is empty.")
-                
-        aggregated_reba_score['score.TableA.mean'] = np.mean(aggregated_reba_score['score.TableA'].to_numpy())
-        aggregated_reba_score['score.TableB.mean'] = np.mean(aggregated_reba_score['score.TableB'].to_numpy())
-        aggregated_reba_score['score.TableA.Tot'] = aggregated_reba_score['score.TableA.mean'] + Force
-        aggregated_reba_score['score.TableB.Tot'] = aggregated_reba_score['score.TableB.mean'] + Coupling
-        aggregated_reba_score['score.TableC'] = Table_C()[str(int(aggregated_reba_score['score.TableA.Tot'][0])-1)+str(int(aggregated_reba_score['score.TableB.Tot'][0])-1)]
-        aggregated_reba_score['score.REBA'] = aggregated_reba_score['score.TableC'] + Activity
+        print(aggregated_reba_score['score.TableA'])
+        print(aggregated_reba_score['score.TableA'].to_numpy())
+        print(np.nanmean(aggregated_reba_score['score.TableA'].to_numpy()))
+        
+        # have a look at the following link to see why we used loc like this: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+        aggregated_reba_score.loc[1, 'score.TableA.mean'] = np.nanmean(aggregated_reba_score['score.TableA'].to_numpy())
+        aggregated_reba_score.loc[1, 'score.TableB.mean'] = np.nanmean(aggregated_reba_score['score.TableB'].to_numpy())
+        print(aggregated_reba_score.loc[1, 'score.TableA.mean'])
+        aggregated_reba_score.loc[1, 'score.TableA.Tot'] = aggregated_reba_score.loc[1, 'score.TableA.mean'] + Force
+        print(aggregated_reba_score.loc[1, 'score.TableA.Tot'])
+        aggregated_reba_score.loc[1, 'score.TableB.Tot'] = aggregated_reba_score.loc[1, 'score.TableB.mean'] + Coupling
+        aggregated_reba_score.loc[1, 'score.TableC'] = Table_C()[str(round(aggregated_reba_score.loc[1, 'score.TableA.Tot'])-1)+str(round(aggregated_reba_score.loc[1, 'score.TableB.Tot'])-1)] 
+        aggregated_reba_score.loc[1, 'score.REBA'] = aggregated_reba_score.loc[1, 'score.TableC'] + Activity
         
         return reba_score, aggregated_reba_score
 
