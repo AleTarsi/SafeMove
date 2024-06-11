@@ -11,22 +11,22 @@ import glob
 
 class ResultsLogger:
   
-  def __init__(self, folder_path, source_video):
-    current_time = datetime.datetime.now()
+  def __init__(self, folder_path, output_path):
     self.folder_path = folder_path
-    excel_path = folder_path + 'excel/' + source_video
-    excel_name = excel_path + '/' + str(current_time.year) + '_' + str(current_time.month) + '_' + str(current_time.day) + '__' + str(current_time.hour) + '_' + str(current_time.minute) + '_' + str(current_time.second) + '.xlsx' 
     
     # Create folder if it does not exists
-    if not os.path.exists(excel_path):
-      os.makedirs(excel_path)
+    if not os.path.exists(output_path):
+      os.makedirs(output_path)
+      
+    self.excel_name = output_path + '/SafeMoveResults.xlsx'
     
-    self.writer = pd.ExcelWriter(excel_name , engine='xlsxwriter')
+    self.writer = pd.ExcelWriter(self.excel_name , engine='xlsxwriter')
+  
   '''
   We followed the structure and the order present in the excel
   For what regards the Data Frame the first letter indicates the positive direction and the second the negative direction
   '''
-  error_list = pd.DataFrame({'t [sec]': [],
+  pose_data = pd.DataFrame({'t [sec]': [],
                              'head.rotation.LR [°]': [],
                              'head.flexion.DU [°]': [],
                              'head.flexion.CCWCW [°]': [],
@@ -69,8 +69,10 @@ class ResultsLogger:
       cv2.imwrite(tmp_path + img_name, img) 
     
     
-  def save_excel(self, dataframe):
+  def save_excel(self, dataframe, reba_score, aggregated_reba_score):
     dataframe.to_excel(self.writer, sheet_name='SafeMoveResults')
+    reba_score.to_excel(self.writer, sheet_name='ScoreComputation')
+    aggregated_reba_score.to_excel(self.writer, sheet_name='AggregatedScoreComputation')
     worksheet = self.writer.sheets['SafeMoveResults']
     
     worksheet.set_column("Z:Z", 200)
@@ -83,7 +85,7 @@ class ResultsLogger:
           worksheet.insert_image(img_cell, file, {"x_scale": 0.5, "y_scale": 0.5})
     
     self.writer.close()
-    print(bcolors.OKGREEN + "Excel saved" + bcolors.ENDC)
+    print(bcolors.OKGREEN + f"Excel saved in {self.excel_name}" + bcolors.ENDC)
     
     if True:
       try: ################# REMOVING TMP FOLDER ###################
