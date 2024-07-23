@@ -6,16 +6,11 @@ current_folder = os.getcwd()
 
 ################# Select video here #######################
 video = 'video_10'
-time = '2024_4_14__16_8_6'
+time = '2024_6_7__11_43_11'
 ###################################################################
 video_folder ="\output\\"
 path = current_folder + video_folder + video + '\\'+ time +'\\'+ "SafeMoveResults.mp4"
 
-video_folder ="/videos/"
-################# Select video here #######################
-video = 'video_10'
-###################################################################
-path = current_folder + video_folder + video + ".mp4"
 
 # load input video
 cap = cv2.VideoCapture(path)

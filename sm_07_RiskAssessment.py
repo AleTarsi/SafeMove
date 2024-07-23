@@ -76,10 +76,19 @@ class RiskAssessment:
                              'score.TableB': [],
                              'score.TableA.mean': [],
                              'score.TableB.mean': [],
+                             'score.Force': [],
+                             'score.Coupling': [],
                              'score.TableA.Tot': [],
                              'score.TableB.Tot': [],
                              'score.TableC': [],
+                             'score.Activity': [],
                              'score.REBA': [],
+                             'score.trunk.Tot': [],
+                             'score.leg.Tot': [],
+                             'score.elbow.Tot': [],
+                             'score.wrist.Tot': [],
+                             'score.shoulder.Tot': [],
+                             'score.neck.Tot': [],
                             })
         
         # Have a look at the following link to see why we avoided using "in range" function: https://stackoverflow.com/questions/36921951/truth-value-of-a-series-is-ambiguous-use-a-empty-a-bool-a-item-a-any-o
@@ -143,12 +152,21 @@ class RiskAssessment:
         # have a look at the following link to see why we used loc like this: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
         aggregated_reba_score.loc[1, 'score.TableA.mean'] = np.nanmean(aggregated_reba_score['score.TableA'].to_numpy())
         aggregated_reba_score.loc[1, 'score.TableB.mean'] = np.nanmean(aggregated_reba_score['score.TableB'].to_numpy())
+        aggregated_reba_score.loc[1, 'score.Force'] = Force
+        aggregated_reba_score.loc[1, 'score.Coupling'] = Coupling
         print(aggregated_reba_score.loc[1, 'score.TableA.mean'])
-        aggregated_reba_score.loc[1, 'score.TableA.Tot'] = aggregated_reba_score.loc[1, 'score.TableA.mean'] + Force
+        aggregated_reba_score.loc[1, 'score.TableA.Tot'] = round(aggregated_reba_score.loc[1, 'score.TableA.mean'] + Force)
         print(aggregated_reba_score.loc[1, 'score.TableA.Tot'])
-        aggregated_reba_score.loc[1, 'score.TableB.Tot'] = aggregated_reba_score.loc[1, 'score.TableB.mean'] + Coupling
+        aggregated_reba_score.loc[1, 'score.TableB.Tot'] = round(aggregated_reba_score.loc[1, 'score.TableB.mean'] + Coupling)
         aggregated_reba_score.loc[1, 'score.TableC'] = Table_C()[str(round(aggregated_reba_score.loc[1, 'score.TableA.Tot'])-1)+str(round(aggregated_reba_score.loc[1, 'score.TableB.Tot'])-1)] 
+        aggregated_reba_score.loc[1, 'score.Activity'] = Activity
         aggregated_reba_score.loc[1, 'score.REBA'] = aggregated_reba_score.loc[1, 'score.TableC'] + Activity
+        aggregated_reba_score.loc[1, 'score.trunk.Tot'] = np.nanmean(aggregated_reba_score['score.trunk'].to_numpy())
+        aggregated_reba_score.loc[1, 'score.leg.Tot'] = np.nanmean(aggregated_reba_score['score.legs'].to_numpy())
+        aggregated_reba_score.loc[1, 'score.elbow.Tot'] = np.nanmean(aggregated_reba_score['score.elbows'].to_numpy())
+        aggregated_reba_score.loc[1, 'score.wrist.Tot'] = np.nanmean(aggregated_reba_score['score.wrists'].to_numpy())
+        aggregated_reba_score.loc[1, 'score.shoulder.Tot'] = np.nanmean(aggregated_reba_score['score.shoulders'].to_numpy())   
+        aggregated_reba_score.loc[1, 'score.neck.Tot'] = np.nanmean(aggregated_reba_score['score.neck'].to_numpy())
         
         return reba_score, aggregated_reba_score
 
