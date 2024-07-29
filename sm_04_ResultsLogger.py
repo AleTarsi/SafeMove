@@ -18,6 +18,8 @@ class ResultsLogger:
     if not os.path.exists(output_path):
       os.makedirs(output_path)
       
+    self.reba_image_path = os.path.join(output_path, 'reba.png')
+      
     self.excel_name = output_path + '/SafeMoveResults.xlsx'
     
     self.writer = pd.ExcelWriter(self.excel_name , engine='xlsxwriter')
@@ -67,7 +69,36 @@ class ResultsLogger:
 
       # write_pictures
       cv2.imwrite(tmp_path + img_name, img) 
+  
+  def save_reba_score(self, aggregated_reba_score):
+    image = cv2.imread('config/empty_reba.png')
     
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.neck.Tot'])), (385, 210), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.trunk.Tot'])), (400, 500), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.leg.Tot'])), (400, 590), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.TableA.mean'])), (400, 705), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.Force'])), (400, 790), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.TableA.Tot'])), (400, 860), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.shoulder.Tot'])), (1270, 345), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.elbow.Tot'])), (1270, 455), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.wrist.Tot'])), (1270, 570), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.TableB.mean'])), (1270, 715), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.Coupling'])), (1270, 800), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.TableB.Tot'])), (1270, 900), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.TableC'])), (525, 960), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.Activity'])), (650, 960), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.REBA'])), (780, 960), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
+    # save image
+    cv2.imwrite(self.reba_image_path, image)
+    
+    # create empty sheet page in the excel
+    data = {}
+    df = pd.DataFrame(data)
+    df.to_excel(self.writer, sheet_name='Base')
+    ws_reba_table = self.writer.sheets['Base']
+    ws_reba_table.set_column("A:A", 2000) # set column width
+    # dump image in the excel
+    ws_reba_table.insert_image("A1", self.reba_image_path, {"x_scale": 1.0, "y_scale": 1.0})
     
   def save_excel(self, dataframe, reba_score, aggregated_reba_score):
     dataframe.to_excel(self.writer, sheet_name='SafeMoveResults')
@@ -75,9 +106,12 @@ class ResultsLogger:
     aggregated_reba_score.to_excel(self.writer, sheet_name='AggregatedScoreComputation')
     worksheet = self.writer.sheets['SafeMoveResults']
     
+    # Write to REBA sheet
+    self.save_reba_score(aggregated_reba_score)
+    
     worksheet.set_column("Z:Z", 200)
     
-    if  True:
+    if True:
       for file in glob.glob(self.folder_path + 'tmp/' + '*.png'):
         row_value = from_image_name_2_excel_row_value(file)
         if row_value != -1:
