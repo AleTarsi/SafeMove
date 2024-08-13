@@ -52,7 +52,6 @@ class Gui:
 
         for index, landmark in enumerate(landmarks.landmark):
             landmark_point.append([landmark.visibility, (landmark.x, landmark.y, landmark.z)])
-            
         
         self.ax.plot([0,0.5], [0,0],zs=[0,0], color="red")
         self.ax.plot([0,0], [0,0],zs=[0,0.5], color="green")
@@ -61,7 +60,6 @@ class Gui:
         self.ax.set_xlim3d(-1, 1)
         self.ax.set_ylim3d(-1, 1)
         self.ax.set_zlim3d(-1, 1)
-
 
         # face
         face_index_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]

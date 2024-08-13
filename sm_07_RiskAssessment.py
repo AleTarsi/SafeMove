@@ -119,8 +119,8 @@ class RiskAssessment:
         reba_score['score.L.ankle.flexion.UD [°]'] = pose_data['L.ankle.flexion.UD [°]']
         
         aggregated_reba_score['t [sec]'] = pose_data['t [sec]'] 
-        sum = reba_score['score.head.rotation.LR [°]'] + reba_score['score.head.flexion.DU [°]'] + reba_score['score.head.flexion.CCWCW [°]']
-        aggregated_reba_score['score.neck'] = np.where(sum>3, 3, sum)
+        head_sum = reba_score['score.head.rotation.LR [°]'] + reba_score['score.head.flexion.DU [°]'] + reba_score['score.head.flexion.CCWCW [°]']
+        aggregated_reba_score['score.neck'] = np.where(head_sum>3, 3, head_sum)
         aggregated_reba_score['score.trunk'] = reba_score['score.trunk.rotation.LR [°]'] + reba_score['score.trunk.flexion.FB [°]'] + reba_score['score.trunk.flexion.LR [°]']
         aggregated_reba_score['score.R.shoulder'] = reba_score['score.R.shoulder.flexion.FB [°]'] + reba_score['score.R.shoulder.abduction.CWCCW [°]'] 
         aggregated_reba_score['score.L.shoulder'] = reba_score['score.L.shoulder.flexion.FB [°]'] + reba_score['score.L.shoulder.abduction.CWCCW [°]'] 

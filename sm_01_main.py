@@ -118,7 +118,6 @@ with NN.Holistic() as PoseNN: # very important for the sake of computation effic
             if cv2.waitKey(5) & 0xFF == 27:
                 break
 
-
         cap.release()
         out.release()
         

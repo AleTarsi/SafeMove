@@ -8,6 +8,7 @@ import datetime
 import shutil
 from sm_00_utils import bcolors, from_image_name_2_excel_row_value
 import glob
+import numpy as np
 
 class ResultsLogger:
   
@@ -100,6 +101,21 @@ class ResultsLogger:
     # dump image in the excel
     ws_reba_table.insert_image("A1", self.reba_image_path, {"x_scale": 1.0, "y_scale": 1.0})
     
+  def save_pie_chart(self, aggregated_reba_score):
+    parts_list = ['score.neck'] #, 'score.trunk', 'score.R.shoulder', 'score.L.shoulder']
+    score_dict = {}
+    
+    for part in parts_list:
+      unique, counts = np.unique(aggregated_reba_score[part], return_counts=True)
+      score_dict[part] = dict(zip(unique, counts))
+      
+      green = score_dict[part][0]
+      yellow = score_dict[part][1]
+      total = green + yellow
+      
+      # Draw pie chart
+      
+      
   def save_excel(self, dataframe, reba_score, aggregated_reba_score):
     dataframe.to_excel(self.writer, sheet_name='SafeMoveResults')
     reba_score.to_excel(self.writer, sheet_name='ScoreComputation')
