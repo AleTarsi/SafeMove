@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 ''' 
 This file contains the API to export the data to an excel file
 '''
@@ -9,19 +11,22 @@ import shutil
 from sm_00_utils import bcolors, from_image_name_2_excel_row_value
 import glob
 import numpy as np
+from sm_10_reba_tables import bin_score_per_articulation
+import matplotlib.pyplot as plt
+from matplotlib.offsetbox import (OffsetImage, AnnotationBbox)
 
 class ResultsLogger:
   
   def __init__(self, folder_path, output_path):
     self.folder_path = folder_path
+    self.output_path = output_path + '/'
     
     # Create folder if it does not exists
-    if not os.path.exists(output_path):
-      os.makedirs(output_path)
+    os.makedirs(output_path, exist_ok=True)
       
-    self.reba_image_path = os.path.join(output_path, 'reba.png')
+    self.reba_image_path = os.path.join(output_path, '00_Reba.png')
       
-    self.excel_name = output_path + '/SafeMoveResults.xlsx'
+    self.excel_name = output_path + '/00_SafeMoveResults.xlsx'
     
     self.writer = pd.ExcelWriter(self.excel_name , engine='xlsxwriter')
   
@@ -65,8 +70,7 @@ class ResultsLogger:
       tmp_path = self.folder_path + 'tmp/' 
       
       # Create folder if it does not exists
-      if not os.path.exists(self.folder_path + 'tmp/'):
-        os.makedirs( self.folder_path + 'tmp/')
+      os.makedirs( self.folder_path + 'tmp/', exist_ok=True)
 
       # write_pictures
       cv2.imwrite(tmp_path + img_name, img) 
@@ -102,18 +106,66 @@ class ResultsLogger:
     ws_reba_table.insert_image("A1", self.reba_image_path, {"x_scale": 1.0, "y_scale": 1.0})
     
   def save_pie_chart(self, aggregated_reba_score):
-    parts_list = ['score.neck'] #, 'score.trunk', 'score.R.shoulder', 'score.L.shoulder']
+    parts_list = ['score.neck', 'score.trunk', 'score.shoulders', 'score.elbows', 'score.wrists', 'score.legs']
     score_dict = {}
     
     for part in parts_list:
       unique, counts = np.unique(aggregated_reba_score[part], return_counts=True)
       score_dict[part] = dict(zip(unique, counts))
       
-      green = score_dict[part][0]
-      yellow = score_dict[part][1]
-      total = green + yellow
+      green_score = bin_score_per_articulation()[part]['green'] # for the neck this returns [1], and for the trunk returns [1,2]
+      yellow_score = bin_score_per_articulation()[part]['yellow']
+      red_score = bin_score_per_articulation()[part]['red'] # for the neck this returns [3], and for the trunk returns [4,5]
       
-      # Draw pie chart
+      green, yellow, red = 0, 0, 0
+      mylabels = []
+      myexplode = []
+      bins = []
+      mycolors = []
+      
+      for score in green_score:
+        if score in score_dict[part]:
+          green += score_dict[part][score]
+          
+      if green:
+        bins.append(green)
+        mylabels.append('Low Risk')
+        myexplode.append(0)
+        mycolors.append('tab:green')
+        
+      for score in yellow_score:
+        if score in score_dict[part]:
+          yellow += score_dict[part][score]
+      
+      if yellow:
+        bins.append(yellow)
+        mylabels.append('Medium Risk')
+        myexplode.append(0.1)
+        mycolors.append('tab:orange')
+        
+      for score in red_score:
+        if score in score_dict[part]:
+          red += score_dict[part][score]
+      
+      if red:
+        bins.append(red)  
+        mylabels.append('High Risk')
+        myexplode.append(0.2)
+        mycolors.append('tab:red')
+      
+      # plt.figure()
+      fig, ax = plt.subplots()
+      part = part.split('.')[1]
+      ax.set_title(part)
+      ax.pie(bins, labels = mylabels, explode = myexplode, colors=mycolors, autopct='%1.1f%%')
+      part_img = cv2.imread('config/' + part + '.png')
+      imagebox = OffsetImage(part_img, zoom = 0.3)#Annotation box for solar pv logo
+      #Container for the imagebox referring to a specific position *xy*.
+      ab = AnnotationBbox(imagebox, (-1.75,1.0), frameon = False, annotation_clip=False)
+      ax.add_artist(ab)
+      # plt.show()
+      
+      fig.savefig(self.output_path + part + '_pie_chart.png')
       
       
   def save_excel(self, dataframe, reba_score, aggregated_reba_score):
@@ -146,5 +198,14 @@ class ResultsLogger:
     
 
     
-    
-    
+if __name__ == "__main__":
+  parts_list = ['score.neck', 'score.trunk', 'score.shoulder', 'score.elbow', 'score.wrist', 'score.legs']
+  score_dict = {}
+  print(bin_score_per_articulation())
+  for part in parts_list:
+    green_score = bin_score_per_articulation()[part]['green']
+    yellow_score = bin_score_per_articulation()[part]['yellow']
+    red_score = bin_score_per_articulation()[part]['red']
+    print(part)
+    print(green_score, yellow_score, red_score)
+    print("\n")

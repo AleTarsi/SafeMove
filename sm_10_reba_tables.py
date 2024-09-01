@@ -251,4 +251,30 @@ def Table_C():
     Table_C["1111"] = 12
     return Table_C
 
+def bin_score_per_articulation():
+    '''    
+    This function returns a dictionary with the bin score for each articulation, which is used to compute the bin graph
     
+    <articulation> <green> <yellow> <red>
+    
+    score.neck [1] [2] [3]
+
+    score.trunk [1, 2] [3] [4, 5]
+
+    score.shoulder [1, 2] [3, 4] [5, 6]
+
+    score.elbow [1] [-1] [2]
+
+    score.wrist [1] [2] [3]
+    
+    '''    
+    
+    bin_score = dict()
+    bin_score['score.neck'] = {'green': [1], 'yellow': [2], 'red': [3]}
+    bin_score['score.trunk'] = {'green': [1,2], 'yellow': [3], 'red': [4,5]}
+    bin_score['score.shoulders'] = {'green': [1,2], 'yellow': [3,4], 'red': [5,6]}
+    bin_score['score.elbows'] = {'green': [1], 'yellow': [], 'red': [2]}
+    bin_score['score.wrists'] = {'green': [1], 'yellow': [2], 'red': [3]}
+    bin_score['score.legs'] = {'green': [1], 'yellow': [2,3], 'red': [4]}
+    return bin_score
+     

@@ -29,9 +29,9 @@ assert Activity in range(0,4)
 current_folder = os.getcwd()
 video_folder ="/videos/"
 ################# Select video here #######################
-video = 'video_10'
+video = 'video_03'
 ###################################################################
-path = current_folder + video_folder + video + ".mp4"
+path = current_folder + video_folder + video + ".mpg"
 
 assert os.path.exists(path), f"Video does not exist in the specified path: {path}.mp4"
 
@@ -39,7 +39,7 @@ cap = cv2.VideoCapture(path) # 0 for webcam
 # cap = cv2.VideoCapture(0) # 0 for webcam
 
 current_time = datetime.datetime.now()
-output_path = current_folder + '/output/' + video + '/' + str(current_time.year) + '_' + str(current_time.month) + '_' + str(current_time.day) + '__' + str(current_time.hour) + '_' + str(current_time.minute) + '_' + str(current_time.second)
+output_path = current_folder + '/output/' + video + '/' + str(current_time.year) + '_' + str(current_time.month) + '_' + str(current_time.day) + '__' + str(current_time.hour) + '_' + str(current_time.minute) + '_' + str(current_time.second) 
 logger = ResultsLogger(folder_path=current_folder, output_path=output_path)
 
 ################## Save Video ####################
@@ -123,6 +123,7 @@ with NN.Holistic() as PoseNN: # very important for the sake of computation effic
         
     finally:
         reba_score, aggregated_reba_score = RiskAssessment.fromDataFrame2Reba(logger.pose_data, Force, Coupling, Activity)
+        logger.save_pie_chart(aggregated_reba_score)
         logger.save_excel(logger.pose_data, reba_score, aggregated_reba_score)
         
 
