@@ -1,5 +1,5 @@
 # SafeMove
-SafeMove is an open-source project that aims to assess ergonomic risk through the RULA standard using AI.
+SafeMove is an open-source project that aims to assess ergonomic risk through the REBA standard using AI.
 
 ## Dependencies:
 
