@@ -199,7 +199,7 @@ class PoseEstimator:
             # cv2.putText(image, f'chest_Rot: {np.round(chest_Rot,1)}', (20,340), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
                      
             
-            return angles[1], myRollWrap(angles[0]), angles[2],chest_LR,chest_FB,chest_Rot,rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW,re_flexion,re_rotation_PS,le_flexion,le_rotation_PS,rw_flexion_UD, rw_rotation_UR, lw_flexion_UD, lw_rotation_UR, rk_flexion, lk_flexion,contact_points,0,0 # index gives us the # of row present in the dataframe, we are writing in a new row the new value of the fields
+            return angles[1], myRollWrap(angles[0]), angles[2],chest_LR,chest_FB,chest_Rot,rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW,re_flexion,re_rotation_PS,le_flexion,le_rotation_PS,rw_flexion_UD, rw_rotation_UR, lw_flexion_UD, lw_rotation_UR, rk_flexion, lk_flexion,contact_points # index gives us the # of row present in the dataframe, we are writing in a new row the new value of the fields
         
         else:
             

@@ -29,7 +29,7 @@ assert Activity in range(0,4)
 current_folder = os.getcwd()
 video_folder ="/videos/"
 ################# Select video here #######################
-video = 'video_08'
+video = 'video_10'
 ###################################################################
 path = current_folder + video_folder + video + ".mp4"
 

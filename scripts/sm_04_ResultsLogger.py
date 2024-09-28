@@ -35,29 +35,27 @@ class ResultsLogger:
   For what regards the Data Frame the first letter indicates the positive direction and the second the negative direction
   '''
   pose_data = pd.DataFrame({'t [sec]': [],
-                             'head.rotation.LR [°]': [],
-                             'head.flexion.DU [°]': [],
-                             'head.flexion.CCWCW [°]': [],
-                             'trunk.rotation.LR [°]': [],
-                             'trunk.flexion.FB [°]': [],
-                             'trunk.flexion.LR [°]': [],
-                             'R.shoulder.flexion.FB [°]': [],
-                             'R.shoulder.abduction.CWCCW [°]': [],
-                             'L.shoulder.flexion.FB [°]': [],
-                             'L.shoulder.abduction.CWCCW [°]': [],
-                             'R.elbow.flexion.UD [°]': [],
-                             'R.elbow.rotation.PS [°]': [],
-                             'L.elbow.flexion.UD [°]': [],
-                             'L.elbow.rotation.PS [°]': [],
-                             'R.wrist.flexion.UD [°]': [],
-                             'R.wrist.rotation.UR [°]': [], 
-                             'L.wrist.flexion.UD [°]': [],
-                             'L.wrist.rotation.UR [°]': [],
-                             'R.knee.flexion.UD [°]': [],
-                             'L.knee.flexion.UD [°]': [],
+                             'head.rotation.LR': [],
+                             'head.flexion.DU': [],
+                             'head.flexion.CCWCW': [],
+                             'trunk.rotation.LR': [],
+                             'trunk.flexion.FB': [],
+                             'trunk.flexion.LR': [],
+                             'R.shoulder.flexion.FB': [],
+                             'R.shoulder.abduction.CWCCW': [],
+                             'L.shoulder.flexion.FB': [],
+                             'L.shoulder.abduction.CWCCW': [],
+                             'R.elbow.flexion.UD': [],
+                             'R.elbow.rotation.PS': [],
+                             'L.elbow.flexion.UD': [],
+                             'L.elbow.rotation.PS': [],
+                             'R.wrist.flexion.UD': [],
+                             'R.wrist.rotation.UR': [], 
+                             'L.wrist.flexion.UD': [],
+                             'L.wrist.rotation.UR': [],
+                             'R.knee.flexion.UD': [],
+                             'L.knee.flexion.UD': [],
                              'contact points [#]': [],
-                             'R.ankle.flexion.UD [°]': [],
-                             'L.ankle.flexion.UD [°]': [],
                             })
   
   def add_picture(self, img, time_stamp, count, PicturesamplingTime=50):
@@ -111,22 +109,20 @@ class ResultsLogger:
     
     for part in parts_list:
       unique, counts = np.unique(reba_score[part], return_counts=True) 
-      score_dict[part] = dict(zip(unique, counts)) # it returns a dictionary, e.g 'score.head.rotation.LR [°]' : {0: count, 1: count}
+      score_dict[part] = dict(zip(unique, counts)) # it returns a dictionary, e.g 'score.head.rotation.LR' : {0: count, 1: count}
       
-      print(score_dict)
-      
-      green_count, yellow_count, red_count, purple_count = 0, 0, 0, 0
       mylabels = []
       myexplode = []
       bins = []
       mycolors = []
+      
       
       if 'green' in bin_score_per_articulation()[part]: # if 'green' in {'green': [0, '[-45°, 45°]'], 'red': [1, '>45°, <-45°']}nt of the times the score has green value
         green_bin = bin_score_per_articulation()[part]['green'] # green_bin = [0, '[-45°, 45°]']
         
         green_score = green_bin[0] # green_score = 0
         
-        # Consider the following case: # score_dict = {'score.head.rotation.LR [°]': {1: 8}} 
+        # Consider the following case: # score_dict = {'score.head.rotation.LR': {1: 8}} 
         # We dont have detected cases in which the score was green, we dont have the key 0 in the dictionary, hence we don't append it to the bins
         if green_score in score_dict[part]: 
 
@@ -172,16 +168,24 @@ class ResultsLogger:
         
       
       part = part.split('.')[1:]
-      title = ' '.join(part) # "['head', 'rotation', 'LR [°]']" -> "head rotation LR [°]"
+      title = ' '.join(part) # "['head', 'rotation', 'LR']" -> "head rotation LR"
       
       fig, ax = plt.subplots()
+      #title
+      ax.set_title(title)
       ax.pie(bins, labels = mylabels, explode = myexplode, colors=mycolors, autopct='%1.1f%%')
             
-      # part_img = cv2.imread('config/' + title + '.png')
-      # imagebox = OffsetImage(part_img, zoom = 0.3)#Annotation box for solar pv logo
-      # #Container for the imagebox referring to a specific position *xy*.
-      # ab = AnnotationBbox(imagebox, (-1.75,1.0), frameon = False, annotation_clip=False)
-      # ax.add_artist(ab)
+      part_img = cv2.imread('config/pic_angles/' + title + '.png')
+      # check if exists
+      if part_img is None:
+        print(bcolors.FAIL + f"Image not found for {title}" + bcolors.ENDC)
+        # print path
+        print('config/pic_angles' + title + '.png')
+        continue
+      imagebox = OffsetImage(part_img, zoom = 0.1)#Annotation box for solar pv logo
+      #Container for the imagebox referring to a specific position *xy*.
+      ab = AnnotationBbox(imagebox, (-1.75,1.0), frameon = False, annotation_clip=False)
+      ax.add_artist(ab)
       # plt.show()
       
       os.makedirs(os.path.join(self.output_path, 'Angles'), exist_ok=True)
@@ -250,6 +254,7 @@ class ResultsLogger:
       
       os.makedirs(os.path.join(self.output_path, 'Risk'), exist_ok=True)
       fig.savefig(os.path.join(self.output_path, 'Risk',  part + '_pie_chart.png'))
+      plt.close(fig)
       
       
   def save_excel(self, dataframe, reba_score, aggregated_reba_score):

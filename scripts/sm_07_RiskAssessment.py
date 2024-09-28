@@ -8,7 +8,7 @@ def score_trunk_flexion_FB(val):
     new_val.loc[np.where([val>60])[1]] = 3
     new_val.loc[np.where([(val>20)&(val<=60)])[1]] = 2
     new_val.loc[np.where([val<0])[1]] = 2
-    return new_val
+    return new_val.astype(int)
 
 def score_shoulder_flexion_FB(val):
     new_val = val.copy()
@@ -17,7 +17,7 @@ def score_shoulder_flexion_FB(val):
     new_val.loc[np.where([(val>60)&(val<=90)])[1]] = 3
     new_val.loc[np.where([(val>90)])[1]] = 4
     new_val.loc[np.where([val<-20])[1]] = 2
-    return new_val
+    return new_val.astype(int)
     
     
 def score_knee_flexion_UD(val):
@@ -25,36 +25,34 @@ def score_knee_flexion_UD(val):
     new_val.loc[np.where([(val>30)&(val<=60)])[1]] = 1
     new_val.loc[np.where([(val>60)])[1]] = 2
     new_val.loc[np.where([val<=30])[1]] = 0
-    return new_val
+    return new_val.astype(int)
         
 
 class RiskAssessment:
     def fromDataFrame2Reba(pose_data, Force, Coupling, Activity):
         
         reba_score = pd.DataFrame({'t [sec]': [],
-                             'score.head.rotation.LR [°]': [],
-                             'score.head.flexion.DU [°]': [],
-                             'score.head.flexion.CCWCW [°]': [],
-                             'score.trunk.rotation.LR [°]': [],
-                             'score.trunk.flexion.FB [°]': [],
-                             'score.trunk.flexion.LR [°]': [],
-                             'score.R.shoulder.flexion.FB [°]': [],
-                             'score.R.shoulder.abduction.CWCCW [°]': [],
-                             'score.L.shoulder.flexion.FB [°]': [],
-                             'score.L.shoulder.abduction.CWCCW [°]': [],
-                             'score.R.elbow.flexion.UD [°]': [],
-                             'score.R.elbow.rotation.PS [°]': [],
-                             'score.L.elbow.flexion.UD [°]': [],
-                             'score.L.elbow.rotation.PS [°]': [],
-                             'score.R.wrist.flexion.UD [°]': [],
-                             'score.R.wrist.rotation.UR [°]': [], 
-                             'score.L.wrist.flexion.UD [°]': [],
-                             'score.L.wrist.rotation.UR [°]': [],
-                             'score.R.knee.flexion.UD [°]': [],
-                             'score.L.knee.flexion.UD [°]': [],
+                             'score.head.rotation.LR': [],
+                             'score.head.flexion.DU': [],
+                             'score.head.flexion.CCWCW': [],
+                             'score.trunk.rotation.LR': [],
+                             'score.trunk.flexion.FB': [],
+                             'score.trunk.flexion.LR': [],
+                             'score.R.shoulder.flexion.FB': [],
+                             'score.R.shoulder.abduction.CWCCW': [],
+                             'score.L.shoulder.flexion.FB': [],
+                             'score.L.shoulder.abduction.CWCCW': [],
+                             'score.R.elbow.flexion.UD': [],
+                             'score.R.elbow.rotation.PS': [],
+                             'score.L.elbow.flexion.UD': [],
+                             'score.L.elbow.rotation.PS': [],
+                             'score.R.wrist.flexion.UD': [],
+                             'score.R.wrist.rotation.UR': [], 
+                             'score.L.wrist.flexion.UD': [],
+                             'score.L.wrist.rotation.UR': [],
+                             'score.R.knee.flexion.UD': [],
+                             'score.L.knee.flexion.UD': [],
                              'score.contact points [#]': [],
-                             'score.R.ankle.flexion.UD [°]': [],
-                             'score.L.ankle.flexion.UD [°]': [],
                             })
         
         aggregated_reba_score = pd.DataFrame({'t [sec]': [],
@@ -93,46 +91,43 @@ class RiskAssessment:
         
         # Have a look at the following link to see why we avoided using "in range" function: https://stackoverflow.com/questions/36921951/truth-value-of-a-series-is-ambiguous-use-a-empty-a-bool-a-item-a-any-o
         reba_score['t [sec]'] = pose_data['t [sec]'] 
-        reba_score['score.head.rotation.LR [°]'] = np.where(abs(pose_data['head.rotation.LR [°]'])<45, 0, 1)
-        reba_score['score.head.flexion.DU [°]'] =  np.where((pose_data['head.flexion.DU [°]']>0) & (pose_data['head.flexion.DU [°]']<=20), 1,2)
-        reba_score['score.head.flexion.CCWCW [°]'] = np.where(abs(pose_data['head.flexion.CCWCW [°]'])<=10, 0, 1)
-        reba_score['score.trunk.rotation.LR [°]'] = np.where(abs(pose_data['trunk.rotation.LR [°]'])<=10, 0, 1)
-        reba_score['score.trunk.flexion.FB [°]'] = score_trunk_flexion_FB(pose_data['trunk.flexion.FB [°]'])
-        reba_score['score.trunk.flexion.LR [°]'] = np.where(abs(pose_data['trunk.flexion.LR [°]'])<=10, 0, 1)
-        reba_score['score.R.shoulder.flexion.FB [°]'] = score_shoulder_flexion_FB(pose_data['R.shoulder.flexion.FB [°]'])
-        reba_score['score.R.shoulder.abduction.CWCCW [°]'] = np.where(abs(pose_data['R.shoulder.abduction.CWCCW [°]'])<=60, 0, 1)
-        reba_score['score.L.shoulder.flexion.FB [°]'] = score_shoulder_flexion_FB(pose_data['L.shoulder.flexion.FB [°]'])
-        reba_score['score.L.shoulder.abduction.CWCCW [°]'] = np.where(abs(pose_data['L.shoulder.abduction.CWCCW [°]'])<=60, 0, 1)
-        reba_score['score.R.elbow.flexion.UD [°]'] = np.where((pose_data['R.elbow.flexion.UD [°]']>=30)&(pose_data['R.elbow.flexion.UD [°]']<=170), 1,2)
-        reba_score['score.R.elbow.rotation.PS [°]'] = np.where(abs(pose_data['R.elbow.rotation.PS [°]'])<=60, 0, 1)
-        reba_score['score.L.elbow.flexion.UD [°]'] = np.where((pose_data['L.elbow.flexion.UD [°]']>=30)&(pose_data['L.elbow.flexion.UD [°]']<=170), 1,2)
-        reba_score['score.L.elbow.rotation.PS [°]'] = np.where(abs(pose_data['L.elbow.rotation.PS [°]'])<=60, 0, 1)
-        reba_score['score.R.wrist.flexion.UD [°]'] = np.where((pose_data['R.wrist.flexion.UD [°]']>=-15) & (pose_data['R.wrist.flexion.UD [°]']<=15), 1, 2)
-        reba_score['score.R.wrist.rotation.UR [°]'] = np.where((pose_data['R.wrist.rotation.UR [°]']>=-24) & (pose_data['R.wrist.rotation.UR [°]']<=15), 0, 1)
-        reba_score['score.L.wrist.flexion.UD [°]'] = np.where((pose_data['L.wrist.flexion.UD [°]']>=-15) & (pose_data['L.wrist.flexion.UD [°]']<=15), 1, 2)
-        reba_score['score.L.wrist.rotation.UR [°]'] = np.where((pose_data['L.wrist.rotation.UR [°]']>=-24) & (pose_data['L.wrist.rotation.UR [°]']<=15), 0, 1)
-        reba_score['score.R.knee.flexion.UD [°]'] = score_knee_flexion_UD(pose_data['R.knee.flexion.UD [°]'])
-        reba_score['score.L.knee.flexion.UD [°]'] = score_knee_flexion_UD(pose_data['L.knee.flexion.UD [°]'])
+        reba_score['score.head.rotation.LR'] = np.where(abs(pose_data['head.rotation.LR'])<45, 0, 1)
+        reba_score['score.head.flexion.DU'] =  np.where((pose_data['head.flexion.DU']>0) & (pose_data['head.flexion.DU']<=20), 1,2)
+        reba_score['score.head.flexion.CCWCW'] = np.where(abs(pose_data['head.flexion.CCWCW'])<=10, 0, 1)
+        reba_score['score.trunk.rotation.LR'] = np.where(abs(pose_data['trunk.rotation.LR'])<=10, 0, 1)
+        reba_score['score.trunk.flexion.FB'] = score_trunk_flexion_FB(pose_data['trunk.flexion.FB'])
+        reba_score['score.trunk.flexion.LR'] = np.where(abs(pose_data['trunk.flexion.LR'])<=10, 0, 1)
+        reba_score['score.R.shoulder.flexion.FB'] = score_shoulder_flexion_FB(pose_data['R.shoulder.flexion.FB'])
+        reba_score['score.R.shoulder.abduction.CWCCW'] = np.where(abs(pose_data['R.shoulder.abduction.CWCCW'])<=60, 0, 1)
+        reba_score['score.L.shoulder.flexion.FB'] = score_shoulder_flexion_FB(pose_data['L.shoulder.flexion.FB'])
+        reba_score['score.L.shoulder.abduction.CWCCW'] = np.where(abs(pose_data['L.shoulder.abduction.CWCCW'])<=60, 0, 1)
+        reba_score['score.R.elbow.flexion.UD'] = np.where((pose_data['R.elbow.flexion.UD']>=30)&(pose_data['R.elbow.flexion.UD']<=170), 1,2)
+        reba_score['score.R.elbow.rotation.PS'] = np.where(abs(pose_data['R.elbow.rotation.PS'])<=60, 0, 1)
+        reba_score['score.L.elbow.flexion.UD'] = np.where((pose_data['L.elbow.flexion.UD']>=30)&(pose_data['L.elbow.flexion.UD']<=170), 1,2)
+        reba_score['score.L.elbow.rotation.PS'] = np.where(abs(pose_data['L.elbow.rotation.PS'])<=60, 0, 1)
+        reba_score['score.R.wrist.flexion.UD'] = np.where((pose_data['R.wrist.flexion.UD']>=-15) & (pose_data['R.wrist.flexion.UD']<=15), 1, 2)
+        reba_score['score.R.wrist.rotation.UR'] = np.where((pose_data['R.wrist.rotation.UR']>=-15) & (pose_data['R.wrist.rotation.UR']<=24), 0, 1)
+        reba_score['score.L.wrist.flexion.UD'] = np.where((pose_data['L.wrist.flexion.UD']>=-15) & (pose_data['L.wrist.flexion.UD']<=15), 1, 2)
+        reba_score['score.L.wrist.rotation.UR'] = np.where((pose_data['L.wrist.rotation.UR']>=-15) & (pose_data['L.wrist.rotation.UR']<=24), 0, 1)
+        reba_score['score.R.knee.flexion.UD'] = score_knee_flexion_UD(pose_data['R.knee.flexion.UD'])
+        reba_score['score.L.knee.flexion.UD'] = score_knee_flexion_UD(pose_data['L.knee.flexion.UD'])
         reba_score['score.contact points [#]'] = pose_data['contact points [#]']
         
-        reba_score['score.R.ankle.flexion.UD [°]'] = pose_data['R.ankle.flexion.UD [°]']
-        reba_score['score.L.ankle.flexion.UD [°]'] = pose_data['L.ankle.flexion.UD [°]']
-        
         aggregated_reba_score['t [sec]'] = pose_data['t [sec]'] 
-        head_sum = reba_score['score.head.rotation.LR [°]'] + reba_score['score.head.flexion.DU [°]'] + reba_score['score.head.flexion.CCWCW [°]']
+        head_sum = reba_score['score.head.rotation.LR'] + reba_score['score.head.flexion.DU'] + reba_score['score.head.flexion.CCWCW']
         aggregated_reba_score['score.neck'] = np.where(head_sum>3, 3, head_sum)
-        aggregated_reba_score['score.trunk'] = reba_score['score.trunk.rotation.LR [°]'] + reba_score['score.trunk.flexion.FB [°]'] + reba_score['score.trunk.flexion.LR [°]']
-        aggregated_reba_score['score.R.shoulder'] = reba_score['score.R.shoulder.flexion.FB [°]'] + reba_score['score.R.shoulder.abduction.CWCCW [°]'] 
-        aggregated_reba_score['score.L.shoulder'] = reba_score['score.L.shoulder.flexion.FB [°]'] + reba_score['score.L.shoulder.abduction.CWCCW [°]'] 
+        aggregated_reba_score['score.trunk'] = reba_score['score.trunk.rotation.LR'] + reba_score['score.trunk.flexion.FB'] + reba_score['score.trunk.flexion.LR']
+        aggregated_reba_score['score.R.shoulder'] = reba_score['score.R.shoulder.flexion.FB'] + reba_score['score.R.shoulder.abduction.CWCCW'] 
+        aggregated_reba_score['score.L.shoulder'] = reba_score['score.L.shoulder.flexion.FB'] + reba_score['score.L.shoulder.abduction.CWCCW'] 
         aggregated_reba_score['score.shoulders'] = aggregated_reba_score[['score.R.shoulder','score.L.shoulder']].max(axis=1) # https://stackoverflow.com/a/12169357
-        aggregated_reba_score['score.R.elbow'] = reba_score['score.R.elbow.flexion.UD [°]'] 
-        aggregated_reba_score['score.L.elbow'] = reba_score['score.L.elbow.flexion.UD [°]'] 
+        aggregated_reba_score['score.R.elbow'] = reba_score['score.R.elbow.flexion.UD'] 
+        aggregated_reba_score['score.L.elbow'] = reba_score['score.L.elbow.flexion.UD'] 
         aggregated_reba_score['score.elbows'] = aggregated_reba_score[['score.R.elbow','score.L.elbow']].max(axis=1)
-        aggregated_reba_score['score.R.wrist'] = reba_score['score.R.wrist.flexion.UD [°]'] + reba_score[['score.R.elbow.rotation.PS [°]','score.R.wrist.rotation.UR [°]']].max(axis=1)
-        aggregated_reba_score['score.L.wrist'] = reba_score['score.L.wrist.flexion.UD [°]'] + reba_score[['score.L.elbow.rotation.PS [°]','score.L.wrist.rotation.UR [°]']].max(axis=1)
+        aggregated_reba_score['score.R.wrist'] = reba_score['score.R.wrist.flexion.UD'] + reba_score[['score.R.elbow.rotation.PS','score.R.wrist.rotation.UR']].max(axis=1)
+        aggregated_reba_score['score.L.wrist'] = reba_score['score.L.wrist.flexion.UD'] + reba_score[['score.L.elbow.rotation.PS','score.L.wrist.rotation.UR']].max(axis=1)
         aggregated_reba_score['score.wrists'] = aggregated_reba_score[['score.R.wrist','score.L.wrist']].max(axis=1)
-        aggregated_reba_score['score.R.leg'] = reba_score['score.R.knee.flexion.UD [°]'] + reba_score['score.contact points [#]']
-        aggregated_reba_score['score.L.leg'] = reba_score['score.L.knee.flexion.UD [°]'] + reba_score['score.contact points [#]']
+        aggregated_reba_score['score.R.leg'] = reba_score['score.R.knee.flexion.UD'] + reba_score['score.contact points [#]']
+        aggregated_reba_score['score.L.leg'] = reba_score['score.L.knee.flexion.UD'] + reba_score['score.contact points [#]']
         aggregated_reba_score['score.legs'] = aggregated_reba_score[['score.R.leg','score.L.leg']].max(axis=1)
         
         pd.options.mode.chained_assignment = None  # default='warn'
@@ -145,18 +140,13 @@ class RiskAssessment:
             except:
                 print("Error computing the Table Value")
                 print("This error is thrown during the unittest due to the first line of the DF which is empty.")
-        print(aggregated_reba_score['score.TableA'])
-        print(aggregated_reba_score['score.TableA'].to_numpy())
-        print(np.nanmean(aggregated_reba_score['score.TableA'].to_numpy()))
         
         # have a look at the following link to see why we used loc like this: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
         aggregated_reba_score.loc[1, 'score.TableA.mean'] = np.nanmean(aggregated_reba_score['score.TableA'].to_numpy())
         aggregated_reba_score.loc[1, 'score.TableB.mean'] = np.nanmean(aggregated_reba_score['score.TableB'].to_numpy())
         aggregated_reba_score.loc[1, 'score.Force'] = Force
         aggregated_reba_score.loc[1, 'score.Coupling'] = Coupling
-        print(aggregated_reba_score.loc[1, 'score.TableA.mean'])
         aggregated_reba_score.loc[1, 'score.TableA.Tot'] = round(aggregated_reba_score.loc[1, 'score.TableA.mean'] + Force)
-        print(aggregated_reba_score.loc[1, 'score.TableA.Tot'])
         aggregated_reba_score.loc[1, 'score.TableB.Tot'] = round(aggregated_reba_score.loc[1, 'score.TableB.mean'] + Coupling)
         aggregated_reba_score.loc[1, 'score.TableC'] = Table_C()[str(round(aggregated_reba_score.loc[1, 'score.TableA.Tot'])-1)+str(round(aggregated_reba_score.loc[1, 'score.TableB.Tot'])-1)] 
         aggregated_reba_score.loc[1, 'score.Activity'] = Activity
