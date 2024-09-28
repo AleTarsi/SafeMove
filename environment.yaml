@@ -1,7 +1,13 @@
 name: safemove
 channels:
   - conda-forge
-  - defaults
 dependencies:
-  - python=3.9
-  - types-openpyxl
+  - python=3.10
+  - pip
+
+  - pip:
+    - openpyxl
+    - pandas
+    - opencv-python
+    - numpy
+    - mediapipe
