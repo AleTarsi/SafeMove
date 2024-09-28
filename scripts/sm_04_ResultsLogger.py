@@ -190,6 +190,7 @@ class ResultsLogger:
       
       os.makedirs(os.path.join(self.output_path, 'Angles'), exist_ok=True)
       fig.savefig(os.path.join(self.output_path, 'Angles',  title + '_pie_chart.png'))
+      plt.close(fig)
         
         
   def save_pie_chart_bin_score(self, aggregated_reba_score):
