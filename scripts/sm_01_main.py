@@ -29,9 +29,9 @@ assert Activity in range(0,4)
 current_folder = os.getcwd()
 video_folder ="/videos/"
 ################# Select video here #######################
-video = 'video_03'
+video = 'video_08'
 ###################################################################
-path = current_folder + video_folder + video + ".mpg"
+path = current_folder + video_folder + video + ".mp4"
 
 assert os.path.exists(path), f"Video does not exist in the specified path: {path}.mp4"
 
@@ -103,6 +103,7 @@ with NN.Holistic() as PoseNN: # very important for the sake of computation effic
                 
             end = time.time()
             fps = computeFPS(end,start,speed_up_rate)
+            print(f'FPS: {fps}')
             
             gui.showText(image, f'time: {np.round(time_stamp, decimals=2)}', (10,height-50))   
             
@@ -123,7 +124,8 @@ with NN.Holistic() as PoseNN: # very important for the sake of computation effic
         
     finally:
         reba_score, aggregated_reba_score = RiskAssessment.fromDataFrame2Reba(logger.pose_data, Force, Coupling, Activity)
-        logger.save_pie_chart(aggregated_reba_score)
+        logger.save_pie_chart_angles(reba_score)
+        logger.save_pie_chart_bin_score(aggregated_reba_score)
         logger.save_excel(logger.pose_data, reba_score, aggregated_reba_score)
         
 

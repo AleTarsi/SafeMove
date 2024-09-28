@@ -119,52 +119,6 @@ def fromLandMarkTo3dPose(human_part,landmark,width,height):
     position = [landmark[human_part].x * width,landmark[human_part].y * height,landmark[human_part].z *width]
     return position
 
-
-# def Compute3DBaseGivenV1(Vx):
-    
-#     '''
-#     Parameters: Vx -> x-axis of the new frame
-    
-#     Output: Rotation matrix world to nose, and single vector of this matrix
-#     '''
-#     assert Vx.shape == [3,1]
-#     # take the vector vx = nose vector
-#     # rotate v_tmp in positive z direction of the original frame
-#     theta = np.deg2rad(10)
-#     Vtmp = np.dot(ZRotationMatrix(theta), np.array((Vx)))
-    
-#     if abs(np.dot(Vtmp,Vx)) == 1:
-#         print("The coordinate Frame are not well defined, due to abs(np.dot(Vtmp,Vx)) == 1")
-        
-#     # take the cross product btw vx and vy and define it as vz
-#     Vz = np.cross(Vx,Vtmp)
-#     # take the corss product btw vx and vz and define it as vy
-#     Vy = - np.cross(Vx,Vz)
-    
-#     Rmat = np.concatenate((Vx,Vy,Vz), axis=1) # Rotation matrix
-    
-#     print (Rmat)
-#     return Rmat, Vx,Vy,Vz
-
-# def ZRotationMatrix(theta):
-#     sint = np.sin(theta) # sin theta
-#     cost = np.cos(theta) # cos theta
-#     return np.array([[cost, -sint, 0], [sint, cost, 0], [0, 0, 1]])
-
-
-# def ComputeAngle(base_link_vector,following_link_vector):
-    
-#     '''
-#     Parameters: base_link_vector,following_link_vector -> 3D vectors representing a human segment
-    
-#     Output: Angle in btw the two vectors
-#     '''
-#     cross_product = np.cross(base_link_vector,following_link_vector)
-#     sin_theta = np.absolute(cross_product)/(np.absolute(base_link_vector)*np.absolute(following_link_vector))
-#     theta = np.arcsin(sin_theta)
-    
-#     return theta
-
 def myRollWrap(angle):
     if angle < 0 :
         roll = angle + 180

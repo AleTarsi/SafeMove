@@ -105,7 +105,90 @@ class ResultsLogger:
     # dump image in the excel
     ws_reba_table.insert_image("A1", self.reba_image_path, {"x_scale": 1.0, "y_scale": 1.0})
     
-  def save_pie_chart(self, aggregated_reba_score):
+  def save_pie_chart_angles(self, reba_score):
+    parts_list = list(reba_score.keys()[1:])
+    score_dict = {}
+    
+    for part in parts_list:
+      unique, counts = np.unique(reba_score[part], return_counts=True) 
+      score_dict[part] = dict(zip(unique, counts)) # it returns a dictionary, e.g 'score.head.rotation.LR [°]' : {0: count, 1: count}
+      
+      print(score_dict)
+      
+      green_count, yellow_count, red_count, purple_count = 0, 0, 0, 0
+      mylabels = []
+      myexplode = []
+      bins = []
+      mycolors = []
+      
+      if 'green' in bin_score_per_articulation()[part]: # if 'green' in {'green': [0, '[-45°, 45°]'], 'red': [1, '>45°, <-45°']}nt of the times the score has green value
+        green_bin = bin_score_per_articulation()[part]['green'] # green_bin = [0, '[-45°, 45°]']
+        
+        green_score = green_bin[0] # green_score = 0
+        
+        # Consider the following case: # score_dict = {'score.head.rotation.LR [°]': {1: 8}} 
+        # We dont have detected cases in which the score was green, we dont have the key 0 in the dictionary, hence we don't append it to the bins
+        if green_score in score_dict[part]: 
+
+          bins.append(score_dict[part][green_score])  # score_dict[part][green_score] containts the count of the green score
+          
+          mylabels.append(green_bin[1]) # mylabels = '[-45°, 45°]'
+          
+          myexplode.append(0)
+          mycolors.append('tab:green')
+          
+      if 'yellow' in bin_score_per_articulation()[part]:
+        yellow_bin = bin_score_per_articulation()[part]['yellow']
+        
+        yellow_score = yellow_bin[0]
+        
+        if yellow_score in score_dict[part]:
+          bins.append(score_dict[part][yellow_score])
+          mylabels.append(yellow_bin[1])
+          myexplode.append(0.1)
+          mycolors.append('tab:orange')
+          
+      if 'red' in bin_score_per_articulation()[part]:
+        red_bin = bin_score_per_articulation()[part]['red']
+        
+        red_score = red_bin[0]
+        
+        if red_score in score_dict[part]:
+          bins.append(score_dict[part][red_score])
+          mylabels.append(red_bin[1])
+          myexplode.append(0.2)
+          mycolors.append('tab:red')
+          
+      if 'purple' in bin_score_per_articulation()[part]:
+        purple_bin = bin_score_per_articulation()[part]['purple']
+        
+        purple_score = purple_bin[0]
+        
+        if purple_score in score_dict[part]:
+          bins.append(score_dict[part][purple_score])
+          mylabels.append(purple_bin[1])
+          myexplode.append(0.3)
+          mycolors.append('tab:purple')
+        
+      
+      part = part.split('.')[1:]
+      title = ' '.join(part) # "['head', 'rotation', 'LR [°]']" -> "head rotation LR [°]"
+      
+      fig, ax = plt.subplots()
+      ax.pie(bins, labels = mylabels, explode = myexplode, colors=mycolors, autopct='%1.1f%%')
+            
+      # part_img = cv2.imread('config/' + title + '.png')
+      # imagebox = OffsetImage(part_img, zoom = 0.3)#Annotation box for solar pv logo
+      # #Container for the imagebox referring to a specific position *xy*.
+      # ab = AnnotationBbox(imagebox, (-1.75,1.0), frameon = False, annotation_clip=False)
+      # ax.add_artist(ab)
+      # plt.show()
+      
+      os.makedirs(os.path.join(self.output_path, 'Angles'), exist_ok=True)
+      fig.savefig(os.path.join(self.output_path, 'Angles',  title + '_pie_chart.png'))
+        
+        
+  def save_pie_chart_bin_score(self, aggregated_reba_score):
     parts_list = ['score.neck', 'score.trunk', 'score.shoulders', 'score.elbows', 'score.wrists', 'score.legs']
     score_dict = {}
     
@@ -165,7 +248,8 @@ class ResultsLogger:
       ax.add_artist(ab)
       # plt.show()
       
-      fig.savefig(self.output_path + part + '_pie_chart.png')
+      os.makedirs(os.path.join(self.output_path, 'Risk'), exist_ok=True)
+      fig.savefig(os.path.join(self.output_path, 'Risk',  part + '_pie_chart.png'))
       
       
   def save_excel(self, dataframe, reba_score, aggregated_reba_score):

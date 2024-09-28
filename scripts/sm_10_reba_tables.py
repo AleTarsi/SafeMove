@@ -276,5 +276,28 @@ def bin_score_per_articulation():
     bin_score['score.elbows'] = {'green': [1], 'yellow': [], 'red': [2]}
     bin_score['score.wrists'] = {'green': [1], 'yellow': [2], 'red': [3]}
     bin_score['score.legs'] = {'green': [1], 'yellow': [2,3], 'red': [4]}
+    
+    bin_score['score.head.rotation.LR [°]'] = {'green': [0, '[-45°, 45°]'], 'red': [1, '>45°, <-45°']}
+    bin_score['score.head.flexion.DU [°]'] = {'green': [1, '[0, 20°]'], 'red': [2, '>20°, <0°']}
+    bin_score['score.head.flexion.CCWCW [°]'] = {'green': [0, '[-10°, 10°]'], 'red': [1, '>10°, <-10°']}
+    bin_score['score.trunk.rotation.LR [°]'] = {'green': [0, '[-10°, 10°]'], 'red': [1, '>10°, <-10°']}
+    bin_score['score.trunk.flexion.FB [°]'] = {'green': [1, '[0, 20°]'], 'yellow': [2, '[20°, 60°], <0°'], 'red': [3, '>60°']}
+    bin_score['score.trunk.flexion.LR [°]'] = {'green': [0, '[-10°, 10°]'], 'red': [1, '>10°, <-10°']}
+    bin_score['score.R.shoulder.flexion.FB [°]'] = {'green': [1, '[-20° , 20°]'], 'yellow': [2, '[20°, 60°], <-20°'], 'red': [3, '[60°, 90°]'], 'purple': [4, '>90°']}
+    bin_score['score.R.shoulder.abduction.CWCCW [°]'] = {'green': [0, '[-60°, 60°]'], 'red': [1, '>60°, <-60°']}
+    bin_score['score.L.shoulder.flexion.FB [°]'] = {'green': [1, '[-20° , 20°]'], 'yellow': [2, '[20°, 60°], <-20°'], 'red': [3, '[60°, 90°]'], 'purple': [4, '>90°']}
+    bin_score['score.L.shoulder.abduction.CWCCW [°]'] = {'green': [0, '[-60°, 60°]'], 'red': [1, '>60°, <-60°']}
+    bin_score['score.R.elbow.flexion.UD [°]'] = {'green': [1, '[30°, 170°]'], 'red': [2, '<30°, >170°']}
+    bin_score['score.R.elbow.rotation.PS [°]'] = {'green': [0, '[-60°, 60°]'], 'red': [1, '>60°, <-60°']}
+    bin_score['score.L.elbow.flexion.UD [°]'] = {'green': [1, '[30°, 170°]'], 'red': [2, '<30°, >170°']}
+    bin_score['score.L.elbow.rotation.PS [°]'] = {'green': [0, '[-60°, 60°]'], 'red': [1, '>60°, <-60°']}
+    bin_score['score.R.wrist.flexion.UD [°]'] = {'green': [1, '[-15°, 15°]'], 'red': [2, '<-15°, >15°']}
+    bin_score['score.R.wrist.rotation.UR [°]'] = {'green': [0, '[-24°, 15°]'], 'red': [1, '>15°, <-24°']}
+    bin_score['score.L.wrist.flexion.UD [°]'] = {'green': [1, '[-15°, 15°]'], 'red': [2, '<-15°, >15°']}
+    bin_score['score.L.wrist.rotation.UR [°]'] = {'green': [0, '[-24°, 15°]'], 'red': [1, '>15°, <-24°']}
+    bin_score['score.R.knee.flexion.UD [°]'] = {'green': [1, '[0°, 30°]'], 'yellow': [2, '[30°, 60°]'], 'red': [3, '>60°']}
+    bin_score['score.L.knee.flexion.UD [°]'] = {'green': [1, '[0°, 30°]'], 'yellow': [2, '[30°, 60°]'], 'red': [3, '>60°']}
+    bin_score['score.contact points [#]'] = {'green': [1, '2 feet'], 'red': [2, '1 foot']}
+    
     return bin_score
      

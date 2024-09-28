@@ -169,5 +169,4 @@ class RiskAssessment:
         aggregated_reba_score.loc[1, 'score.neck.Tot'] = np.nanmean(aggregated_reba_score['score.neck'].to_numpy())
         
         return reba_score, aggregated_reba_score
-
         
