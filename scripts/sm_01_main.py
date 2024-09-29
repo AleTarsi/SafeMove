@@ -32,7 +32,7 @@ from sm_00_utils import computeFPS
 import matplotlib.pyplot as plt
 from sm_04_ResultsLogger import ResultsLogger
 from sm_07_RiskAssessment import RiskAssessment
-            
+from pathlib import Path
 
 ###################################################################
 save_pictures_in_excel = False
@@ -48,12 +48,15 @@ assert Coupling in range(0,4)
 Activity = int(input("How is the activity score 0,1,2 or 3? "))
 assert Activity in range(0,4)
 ###################################################################
-current_folder = os.getcwd()
-video_folder ="/videos/"
+
+current_folder = os.path.dirname(os.path.abspath(__file__))
+parent_folder = Path(current_folder).parent
+
+video_folder = "/videos/"
 ################# Select video here #######################
 video = 'test_video'
 ###################################################################
-path = current_folder + video_folder + video + ".mp4"
+path = str(parent_folder) + video_folder + video + '.mp4'
 
 assert os.path.exists(path), f"Video does not exist in the specified path: {path}"
 

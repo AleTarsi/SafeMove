@@ -157,8 +157,8 @@ class RiskAssessment:
         for idx in range(len(aggregated_reba_score['score.neck'])):
             try:
                 # We subtract 1, because we started to count from 0 in the tables
-                aggregated_reba_score['score.TableA'].loc[idx] = Table_A()[str(int(aggregated_reba_score['score.neck'].loc[idx]-1))+str(int(aggregated_reba_score['score.trunk'].loc[idx]-1))+str(int(aggregated_reba_score['score.legs'].loc[idx]-1))]
-                aggregated_reba_score['score.TableB'].loc[idx] = Table_B()[str(int(aggregated_reba_score['score.elbows'].loc[idx]-1))+str(int(aggregated_reba_score['score.shoulders'].loc[idx]-1))+str(int(aggregated_reba_score['score.wrists'].loc[idx]-1))]
+                aggregated_reba_score.loc[idx, 'score.TableA'] = Table_A()[str(int(aggregated_reba_score.loc[idx, 'score.neck']-1))+str(int(aggregated_reba_score.loc[idx, 'score.trunk']-1))+str(int(aggregated_reba_score.loc[idx, 'score.legs']-1))]
+                aggregated_reba_score.loc[idx, 'score.TableB'] = Table_B()[str(int(aggregated_reba_score.loc[idx, 'score.elbows']-1))+str(int(aggregated_reba_score.loc[idx, 'score.shoulders']-1))+str(int(aggregated_reba_score.loc[idx, 'score.wrists']-1))]
             except:
                 print("Error computing the Table Value")
                 print("This error is thrown during the unittest due to the first line of the DF which is empty.")
