@@ -64,7 +64,7 @@ class Gui:
 
     def showText(self, image, txt, pose): # f'FPS: {int(fps)}'
         '''
-        Note that pose argument must be a tuple
+        Write text on the image using default font
         '''
         cv2.putText(image, txt, pose, cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
     
@@ -182,14 +182,11 @@ class Gui:
         '''
         We plot a reference frame fixed to the hip and rotating based on the body orientation
         '''
-              
+
         self.ax.plot([0,body_xaxis[0]], [0,body_xaxis[1]],zs=[0,body_xaxis[2]], color="red")
-        
-        if 0: # not really used as it is coincident with the world reference frame
-            self.ax.plot([0,body_yaxis[0]], [0,body_yaxis[1]],zs=[0,body_yaxis[2]], color="green")
-        
+        self.ax.plot([0,body_yaxis[0]], [0,body_yaxis[1]],zs=[0,body_yaxis[2]], color="green") # Coincide with the world y-axis pointing upwards
         self.ax.plot([0,body_zaxis[0]], [0,body_zaxis[1]],zs=[0,body_zaxis[2]], color="blue")
-        # plt.pause(.001)
+        plt.pause(.001)
         
     
     def ChestReferenceFrame(self, chest_xaxis, chest_yaxis, chest_zaxis, chest):

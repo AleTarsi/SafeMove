@@ -31,7 +31,7 @@ video = 'video_10'
 time = '2024_6_7__11_43_11'
 ###################################################################
 video_folder ="\output\\"
-path = current_folder + video_folder + video + '\\'+ time +'\\'+ "00_SafeMoveResults.mp4"
+path = os.path.join(current_folder, video_folder, video, time, "SafeMoveResults.mp4")
 
 
 # load input video

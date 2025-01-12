@@ -1,0 +1,13 @@
+# MAIN CONFIGURATION FILE
+
+# SOURCE
+video: "video00.png" # Path to the video to be analyzed, it must be a file in the videos folder
+webcam: False # If True, the video will be captured from the webcam
+
+# FRAME RATE
+speed_up: 1 # Speed up the video by this factor [It must be a positive integer greater than 0]
+fps_input_video: 30 # Frames per second of the input, use to compute the output frame rate
+
+# VISUALIZATION
+save_pictures_in_excel: False # Save screenshots of the video in the generated excel file
+visualize_pose: True # Visualize the pose estimation in the video

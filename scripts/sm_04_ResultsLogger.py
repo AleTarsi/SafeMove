@@ -30,15 +30,15 @@ import cv2
 import os
 import datetime
 import shutil
-from sm_00_utils import bcolors, from_image_name_2_excel_row_value
+from sm_00_utils import bcolors, from_image_name_2_excel_row_value, WORKSPACE
 import glob
 import numpy as np
 from sm_10_reba_tables import bin_score_per_articulation
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import (OffsetImage, AnnotationBbox)
 
+
 class ResultsLogger:
-  
   def __init__(self, folder_path, output_path):
     self.folder_path = folder_path
     self.output_path = output_path + '/'
@@ -46,16 +46,15 @@ class ResultsLogger:
     # Create folder if it does not exists
     os.makedirs(output_path, exist_ok=True)
       
-    self.reba_image_path = os.path.join(output_path, '00_Reba.png')
+    self.reba_image_path = os.path.join(output_path, 'Reba.png')
       
-    self.excel_name = output_path + '/00_SafeMoveResults.xlsx'
+    self.excel_name = output_path + '/SafeMoveResults.xlsx'
     
     self.writer = pd.ExcelWriter(self.excel_name , engine='xlsxwriter')
   
-  '''
-  We followed the structure and the order present in the excel
-  For what regards the Data Frame the first letter indicates the positive direction and the second the negative direction
-  '''
+  
+  # For what regards the Data Frame the first letter indicates the positive direction and the second the negative direction
+  
   pose_data = pd.DataFrame({'t [sec]': [],
                              'head.rotation.LR': [],
                              'head.flexion.DU': [],
@@ -90,13 +89,13 @@ class ResultsLogger:
       tmp_path = self.folder_path + 'tmp/' 
       
       # Create folder if it does not exists
-      os.makedirs( self.folder_path + 'tmp/', exist_ok=True)
+      os.makedirs(self.folder_path + 'tmp/', exist_ok=True)
 
       # write_pictures
       cv2.imwrite(tmp_path + img_name, img) 
   
   def save_reba_score(self, aggregated_reba_score):
-    image = cv2.imread('config/empty_reba.png')
+    image = cv2.imread(os.path.join(WORKSPACE, 'config', 'reba', 'empty_reba.png'))
     
     cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.neck.Tot'])), (385, 210), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
     cv2.putText(image, str(round(aggregated_reba_score.loc[1, 'score.trunk.Tot'])), (400, 500), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2)
@@ -197,12 +196,12 @@ class ResultsLogger:
       ax.set_title(title)
       ax.pie(bins, labels = mylabels, explode = myexplode, colors=mycolors, autopct='%1.1f%%')
             
-      part_img = cv2.imread('config/pic_angles/' + title + '.png')
+      part_img = cv2.imread(os.path.join(WORKSPACE, 'config','pic_angles', title + '.png'))
       # check if exists
       if part_img is None:
         print(bcolors.FAIL + f"Image not found for {title}" + bcolors.ENDC)
         # print path
-        print('config/pic_angles' + title + '.png')
+        print(os.path.join(WORKSPACE, 'config','pic_angles', title + '.png'))
         continue
       imagebox = OffsetImage(part_img, zoom = 0.1)#Annotation box for solar pv logo
       #Container for the imagebox referring to a specific position *xy*.
@@ -268,7 +267,7 @@ class ResultsLogger:
       part = part.split('.')[1]
       ax.set_title(part)
       ax.pie(bins, labels = mylabels, explode = myexplode, colors=mycolors, autopct='%1.1f%%')
-      part_img = cv2.imread('config/' + part + '.png')
+      part_img = cv2.imread(os.path.join(WORKSPACE, 'config', 'parts', part + '.png'))
       imagebox = OffsetImage(part_img, zoom = 0.3)#Annotation box for solar pv logo
       #Container for the imagebox referring to a specific position *xy*.
       ab = AnnotationBbox(imagebox, (-1.75,1.0), frameon = False, annotation_clip=False)

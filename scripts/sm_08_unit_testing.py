@@ -24,17 +24,20 @@ import unittest
 import pandas as pd
 from sm_07_RiskAssessment import RiskAssessment
 import numpy as np
+from sm_00_utils import WORKSPACE
+import os
 
 verbose = False
 
 def inference_test():
     gt = dict()
     results = dict()
-    gt_angles = pd.read_excel('config/test.xlsx', sheet_name='Angles').fillna(0)
+    test_excel_file = os.path.join(WORKSPACE, 'config','tests', 'test.xlsx')
+    gt_angles = pd.read_excel(test_excel_file, sheet_name='Angles').fillna(0)
     print(gt_angles.index)
-    gt_scores = pd.read_excel('config/test.xlsx', sheet_name='Scores').fillna(0)
-    gt_reba = pd.read_excel('config/test.xlsx', sheet_name='Reba').fillna(0)
-    gt_extra = pd.read_excel('config/test.xlsx', sheet_name='Extra').fillna(0)
+    gt_scores = pd.read_excel(test_excel_file, sheet_name='Scores').fillna(0)
+    gt_reba = pd.read_excel(test_excel_file, sheet_name='Reba').fillna(0)
+    gt_extra = pd.read_excel(test_excel_file, sheet_name='Extra').fillna(0)
     gt['Angles'] = gt_angles
     gt['Scores'] = gt_scores
     gt['Reba'] = gt_reba

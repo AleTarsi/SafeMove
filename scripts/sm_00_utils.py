@@ -22,11 +22,13 @@
 
 import numpy as np
 import cv2
+import os
  
 red = (0,0,255)
 green = (0,255,0)
 blue = (255,0,0)
 
+WORKSPACE = os.environ.get('SAFE_MOVE_PATH')
 
 class bcolors:
     HEADER = '\033[95m'
@@ -101,21 +103,10 @@ class HandLandmark():
   PINKY_DIP = 19
   PINKY_TIP = 20
   
-def computeFPS(end,start,frames_to_skip):
-    totalTime = end - start
-
-    try:
-        fps_output = (1 / totalTime)*frames_to_skip
-    except:
-        fps_output= -1
-                
-    return fps_output
-  
-def fromWorldLandmark2nparray(worldLandMark):
+def worldLandmark2numpy(worldLandMark):
     return np.array([worldLandMark.x, worldLandMark.z, worldLandMark.y*(-1)])
   
-def computeMidPosition(A,B, Lambda = 0.5):
-    
+def computeMidPosition(A,B, Lambda = 0.5):   
     '''
     Parameters: A,B -> 3D vectors
                 Lambda -> bilinear interpolation coefficient: 0.5 = half way
@@ -129,17 +120,18 @@ def computeMidPosition(A,B, Lambda = 0.5):
     mid = Lambda*A + (1-Lambda)*B
     return mid, mid[0], mid[1], mid[2]
 
-def fromLandMarkTo3dPose(human_part,landmark,width,height):
-    
+def computeChestFrame(chest, left_shoulder, hip_center):
     '''
-    Parameters: A,B -> 3D vectors
-                Lambda -> bilinear interpolation coefficient: 0.5 = half way
-    
-    Output: Middle point in 3D Euclidean Space.
+    Compute the chest frame of the subject, given the hip and the left shoulder position.
+    The z-axis is the direction connecting the chest and the hip. The x-axis is the direction connecting the chest and the right shoulder.
     '''
-    
-    position = [landmark[human_part].x * width,landmark[human_part].y * height,landmark[human_part].z *width]
-    return position
+    # Compute the direction of the subject
+    x_axis = normalize(left_shoulder - chest)
+    z_axis = normalize(chest - hip_center)
+    y_axis = np.cross(z_axis, x_axis)
+    R = np.array([x_axis, y_axis, z_axis])
+
+    return R
 
 def myRollWrap(angle):
     if angle < 0 :
@@ -157,16 +149,16 @@ def ImageCoordinateFrame(image):
     cv2.putText(image, 'x', (30,25), cv2.FONT_HERSHEY_SIMPLEX, 1.5, red, 2)
     cv2.putText(image, 'y', (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, green, 2)
 
-def Face3DCoordinateFrame(image, _2D_Origin, _3D_Origin, rot_vec, trans_vec, cam_matrix, dist_matrix):
-    
-    VbaseX, _ = cv2.projectPoints((_3D_Origin[0]+300, _3D_Origin[1], _3D_Origin[2]), rot_vec, trans_vec, cam_matrix, dist_matrix)
-    VbaseY, _ = cv2.projectPoints((_3D_Origin[0], _3D_Origin[1]+300, _3D_Origin[2]), rot_vec, trans_vec, cam_matrix, dist_matrix)
-    VbaseZ, _ = cv2.projectPoints((_3D_Origin[0], _3D_Origin[1], _3D_Origin[2]+300), rot_vec, trans_vec, cam_matrix, dist_matrix)
+def Plot3DCoordinateFrame(image, _2D_Origin, _3D_Origin, rot_vec, trans_vec, cam_matrix, dist_matrix, length = 300.0):
+    '''Draw a 3D Frame on the 2D_Origin position'''
+    VbaseX, _ = cv2.projectPoints((_3D_Origin[0]+length, _3D_Origin[1], _3D_Origin[2]), rot_vec, trans_vec, cam_matrix, dist_matrix)
+    VbaseY, _ = cv2.projectPoints((_3D_Origin[0], _3D_Origin[1]+length, _3D_Origin[2]), rot_vec, trans_vec, cam_matrix, dist_matrix)
+    VbaseZ, _ = cv2.projectPoints((_3D_Origin[0], _3D_Origin[1], _3D_Origin[2]+length), rot_vec, trans_vec, cam_matrix, dist_matrix)
     
     cv2.line(image, np.array([_2D_Origin[0] , _2D_Origin[1]], dtype=int), np.array([VbaseX[0][0][0] , VbaseX[0][0][1]], dtype=int), red, 3)
     cv2.line(image, np.array([_2D_Origin[0] , _2D_Origin[1]], dtype=int), np.array([VbaseY[0][0][0] , VbaseY[0][0][1]], dtype=int), green, 3)
     cv2.line(image, np.array([_2D_Origin[0] , _2D_Origin[1]], dtype=int), np.array([VbaseZ[0][0][0] , VbaseZ[0][0][1]], dtype=int), blue, 3)
-    
+
 def normalize(vect):
     try:
         return vect/np.linalg.norm(vect)

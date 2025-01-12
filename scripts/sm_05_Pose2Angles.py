@@ -25,37 +25,30 @@ from sm_00_utils import normalize, bcolors
 
 
 class Pose2Angles:
-
-    def BodyAxes(leftHip):
+    '''
+    The class Pose2Angles is used to compute the angles of the body parts from the pose landmarks.
+    The reference frames follows the structure indicated in the README.md file
+    '''
+    def BodyAxes(left_hip):
         '''
-        Return three axes with magnitude 0.5 centered in zero and orientated as the Waist of the person.
+        Return three axes centered in zero and orientated as the Hip of the person. The axes’ norm is 0.5
         '''
-        world_xaxis = np.array([0.5,0,0])
-        world_yaxis = np.array([0,0,0.5])
-        world_zaxis = np.array([0,-0.5,0])
+        left_hip[2] = 0 # Set to zero the component pointing up
+        body_xaxis = 0.5 * np.array(left_hip)/np.linalg.norm(left_hip)
+        body_yaxis = np.array([0,0,0.5])
 
-        left_hip_line = leftHip
-        left_hip_line[2] = 0 # We set to zero the component pointing up (world_yaxis),
-        body_xaxis = 0.5 * (left_hip_line)/np.linalg.norm(left_hip_line)
-        body_yaxis = world_yaxis
-
-        z_dir = np.cross(left_hip_line,world_yaxis)
+        z_dir = np.cross(left_hip, body_yaxis)
         body_zaxis = 0.5 * (z_dir)/np.linalg.norm(z_dir)
 
         return body_xaxis, body_yaxis, body_zaxis
     
-    def BackAxes(left_shoulder_point, chest):
+    def BackAxes(left_shoulder_point, chest, hip):
         '''
-        Return three axes with magnitude 0.5 centered in zero and orientated as the chest of the person.
+        Return three axes with magnitude 0.5 centered in zero and orientated in the chest of the person.
         '''
-        world_xaxis = np.array([0.5,0,0])
-        world_yaxis = np.array([0,0,0.5])
-        world_zaxis = np.array([0,-0.5,0])
-        origin = np.array([0,0,0])
-        
         left_shoulder_point[2] = chest[2] # We set to the chest level the component pointing up (world_yaxis)
         shoulder_xaxis = 0.5 * (left_shoulder_point-chest)/np.linalg.norm(left_shoulder_point-chest)
-        shoulder_yaxis = 0.5 * (chest - origin)/np.linalg.norm(chest - origin)
+        shoulder_yaxis = 0.5 * (chest - hip)/np.linalg.norm(chest - hip)
         z_dir = np.cross(shoulder_xaxis,shoulder_yaxis)
         shoulder_zaxis = 0.5 * (z_dir)/np.linalg.norm(z_dir)
         
@@ -72,6 +65,24 @@ class Pose2Angles:
         chest_Rot = np.rad2deg(np.arcsin(np.dot(body_xaxis,chest_yaxis)/(np.linalg.norm(body_xaxis)*np.linalg.norm(chest_yaxis))))
             
         return chest_LR, chest_FB, chest_Rot
+    
+    def HeadAngles(b_R_head, b_R_chest):
+        '''
+        b_R_head: rotation of the head wrt the body
+        b_R_chest: rotation of the chest wrt the body
+        '''
+        b_R_head_x = b_R_head[0]
+        b_R_head_y = b_R_head[1]
+        b_R_head_z = b_R_head[2]
+        b_R_chest_x = b_R_chest[0]
+        b_R_chest_y = b_R_chest[1]
+        b_R_chest_z = b_R_chest[2]
+
+        head_rotation_LR = np.rad2deg(np.arcsin(np.dot(b_R_head_z,b_R_chest_x)/(np.linalg.norm(b_R_head_z)*np.linalg.norm(b_R_chest_x))))
+        head_flexion_DU = np.rad2deg(np.arcsin(np.dot(b_R_head_y, b_R_chest_z)/(np.linalg.norm(b_R_head_y)*np.linalg.norm(b_R_chest_z))))
+        head_flexion_CCWCW = np.rad2deg(np.arcsin(np.dot(b_R_head_y, b_R_chest_x)/(np.linalg.norm(b_R_head_y)*np.linalg.norm(b_R_chest_x))))
+        
+        return head_rotation_LR, head_flexion_DU, head_flexion_CCWCW
 
     def ShoulderAngles(rightShoulder, rightElbow, leftShoulder, leftElbow, chest_zaxis, chest_xaxis):
         '''
