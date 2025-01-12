@@ -26,9 +26,9 @@ python scripts/sm_01_main.py
 ## Results:
 Enter in the folder `output` to visualize the results of your test.
 
-You can visualize risk  as graphs or as automatic generated excel containing the NN prediction over time.
+You can visualize risk as body part graphs or as automatic generated excel containing the NN prediction over time.
 
-|Prediction|Analysis|
+|Body Parts|Excel|
 |---|---|
 |<img src="./_assets/angle_risk_example.png" wodth=600;/>|<img src="./_assets/excel_example.png" wodth=600;/>|
 
