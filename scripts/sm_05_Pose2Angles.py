@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 import numpy as np
-from sm_00_utils import normalize, bcolors
+from sm_00_utils import e2norm, bcolors
 
 
 class Pose2Angles:
@@ -35,7 +35,7 @@ class Pose2Angles:
         '''
         left_hip[2] = 0 # Set to zero the component pointing up
         body_xaxis = 0.5 * np.array(left_hip)/np.linalg.norm(left_hip)
-        body_yaxis = np.array([0,0,0.5])
+        body_yaxis = np.array([0,0,0.5]) # Force component pointing up to be vertically aligned
 
         z_dir = np.cross(left_hip, body_yaxis)
         body_zaxis = 0.5 * (z_dir)/np.linalg.norm(z_dir)
@@ -44,27 +44,108 @@ class Pose2Angles:
     
     def BackAxes(left_shoulder_point, chest, hip):
         '''
-        Return three axes with magnitude 0.5 centered in zero and orientated in the chest of the person.
+        Return three axes with magnitude 0.5 centered in the chest of the person and oriented as its shoulders.
         '''
         left_shoulder_point[2] = chest[2] # We set to the chest level the component pointing up (world_yaxis)
-        shoulder_xaxis = 0.5 * (left_shoulder_point-chest)/np.linalg.norm(left_shoulder_point-chest)
-        shoulder_yaxis = 0.5 * (chest - hip)/np.linalg.norm(chest - hip)
+        shoulder_xaxis = 0.5 * (left_shoulder_point-chest)/e2norm(left_shoulder_point,chest)
+        shoulder_yaxis = 0.5 * (chest - hip)/e2norm(chest,hip)
         z_dir = np.cross(shoulder_xaxis,shoulder_yaxis)
         shoulder_zaxis = 0.5 * (z_dir)/np.linalg.norm(z_dir)
         
         return shoulder_xaxis, shoulder_yaxis, shoulder_zaxis
     
     def BackAngles(body_xaxis, body_yaxis, body_zaxis, chest_xaxis, chest_yaxis, chest_zaxis):
-        
-        if np.cross(chest_xaxis,body_xaxis)[2]>= 0: # if the cross product points upward 
-            sign_LR = 1
-        else:
-            sign_LR = -1
-        chest_LR = sign_LR * np.rad2deg(np.arccos(np.dot(body_xaxis,chest_xaxis)/(np.linalg.norm(body_xaxis)*np.linalg.norm(chest_xaxis))))
-        chest_FB = np.rad2deg(np.arccos(np.dot(body_zaxis,chest_zaxis)/(np.linalg.norm(body_zaxis)*np.linalg.norm(chest_zaxis))))
-        chest_Rot = np.rad2deg(np.arcsin(np.dot(body_xaxis,chest_yaxis)/(np.linalg.norm(body_xaxis)*np.linalg.norm(chest_yaxis))))
+        '''
+        chest_R_LR: chest rotation left-right
+        chest_F_FB: chest flexion front-back
+        chest_F_LR: chest flexion left-right
+        '''
+        chest_R_LR = np.rad2deg(np.arcsin((np.dot(chest_zaxis, body_xaxis))/e2norm(chest_zaxis, body_xaxis)))
+        chest_F_FB = np.rad2deg(np.arcsin((np.dot(chest_yaxis, body_zaxis))/e2norm(chest_yaxis, body_zaxis)))
+        chest_F_LR = np.rad2deg(np.arcsin((np.dot(chest_yaxis, body_xaxis))/e2norm(chest_yaxis, body_xaxis)))
             
-        return chest_LR, chest_FB, chest_Rot
+        return chest_R_LR, chest_F_FB, chest_F_LR
+
+    def ShoulderAngles(rightShoulder, rightElbow, leftShoulder, leftElbow, chest_zaxis, chest_xaxis):
+        '''
+        rs: right shoulder
+        ls: left shoulder
+        '''
+        rightElbowLine = (rightElbow - rightShoulder)/e2norm(rightElbow,rightShoulder)  # line connecting the elbow and the shoulder centered in zero, remember that also chest_*axis is centered in zero
+        # chest_zaxis points forward, i.e. the direction of the forehead
+        # TODO: address angles higher than 90deg for forward flexion and abduction
+        rs_flexion_FB = np.rad2deg(np.arcsin((np.dot(rightElbowLine,chest_zaxis))/e2norm(rightElbowLine,chest_zaxis)))
+        rs_abduction_CWCCW = np.rad2deg(np.arcsin((np.dot(rightElbowLine,-chest_xaxis)/e2norm(rightElbowLine,chest_xaxis))))
+        
+        leftElbowLine = (leftElbow - leftShoulder)/e2norm(leftElbow,leftShoulder)
+        # chest_zaxis points forward, i.e. the direction of the forehead
+        # TODO: address angles higher than 90deg for forward flexion and abduction
+        ls_flexion_FB = np.rad2deg(np.arcsin((np.dot(leftElbowLine,chest_zaxis))/e2norm(leftElbowLine,chest_zaxis)))
+        ls_abduction_CCWCW = np.rad2deg(np.arcsin((np.dot(leftElbowLine,chest_xaxis)/e2norm(leftElbowLine,chest_xaxis))))
+        
+        return rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW
+    
+    def ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist):
+        '''
+        re: right elbow
+        le: left elbow
+        '''
+        rightWristLine = (rightWrist - rightElbow)/e2norm(rightWrist,rightElbow) # line connecting the elbow and the wrist centered in zero
+        rightElbowLine = (rightElbow - rightShoulder)/e2norm(rightElbow,rightShoulder) # line connecting the elbow and the shoulder
+        re_flexion = np.rad2deg(np.arccos((np.dot(rightWristLine,rightElbowLine))/e2norm(rightWristLine,rightElbowLine)))
+        
+        leftWristLine = (leftWrist - leftElbow)/e2norm(leftWrist,leftElbow) # line connecting the elbow and the wrist
+        leftElbowLine = (leftElbow - leftShoulder)/e2norm(leftElbow,leftShoulder) # line connecting the elbow and the shoulder
+        le_flexion = np.rad2deg(np.arccos((np.dot(leftWristLine,leftElbowLine))/e2norm(leftWristLine,leftElbowLine)))
+        
+        return re_flexion, le_flexion
+    
+    def WristAngles(Elbow, Wrist, Hand, Index, Pinky, waist_xaxis, left_flag = False):
+        '''
+        lw: left wrist
+        le: left elbow
+        flexion_UD: flexion up-down
+        rotation_PS: rotation pronation-supination
+        rotation_UR: rotation ulnar-radial
+        Observation: Here you cannot use the arccosine wrt a line going further the writst as you can twist your wrist laterally and UD, you need to use arcsin with a line poining up your wrist
+        '''
+        
+        '''
+        1- compute the elbow line as the line connecting wrist and elbow
+        2- compute the lateral direction using the line connecting the index to the pinky finger
+        3- Compute the third direction as the one pointing up and starting from the wrist.
+        4- Use that orthogonal direction to compute the wrist UD angle. As the line
+        '''
+        
+        HandLine = (Hand - Wrist)/e2norm(Hand,Wrist) # line connecting the wrist and the hand
+        WristLine = (Wrist - Elbow)/e2norm(Wrist,Elbow) # line connecting the wrist and the elbow
+        PalmLine = (Index - Pinky)/e2norm(Pinky,Index) # line connecting the index to the pinky finger
+        OrthogonalPalmLine = (np.cross(HandLine, PalmLine))/e2norm(HandLine, PalmLine) # orthogonal to the palm, z pointing externally to the palm
+        wrist_flexion_UD = np.rad2deg(np.arcsin((np.dot(WristLine, OrthogonalPalmLine))/e2norm(WristLine, OrthogonalPalmLine)))
+        elbow_rotation_PS = np.rad2deg(-np.arcsin((np.dot(PalmLine, waist_xaxis))/e2norm(PalmLine, waist_xaxis)))
+        wrist_rotation_UR = np.rad2deg(-np.arcsin((np.dot(PalmLine, WristLine))/e2norm(PalmLine, WristLine)))
+        
+        return wrist_flexion_UD, elbow_rotation_PS, wrist_rotation_UR, WristLine, PalmLine, OrthogonalPalmLine
+
+    def KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle):
+        '''
+        rk: right knee
+        lk: left knee
+        
+        1- compute the knee line as the line connecting the hip and the knee
+        2- compute the feet line as the line connecting the knee and the foot
+        3- compute the angle in btw this two lines
+        '''
+        leftkneeLine = (leftHip - leftKnee)/e2norm(leftHip,leftKnee)
+        leftFeetLine = (leftKnee - leftAnkle)/e2norm(leftKnee,leftAnkle)
+        lk_flexion = np.rad2deg(np.arccos((np.dot(leftkneeLine,leftFeetLine))/e2norm(leftkneeLine,leftFeetLine)))
+        
+        rightkneeLine = (rightHip - rightKnee)/e2norm(rightHip,rightKnee)
+        rightFeetLine = (rightKnee - rightAnkle)/e2norm(rightKnee,rightAnkle)
+        rk_flexion = np.rad2deg(np.arccos((np.dot(rightkneeLine,rightFeetLine))/e2norm(rightkneeLine,rightFeetLine)))
+        
+        return rk_flexion, lk_flexion
+    
     
     def HeadAngles(b_R_head, b_R_chest):
         '''
@@ -78,87 +159,11 @@ class Pose2Angles:
         b_R_chest_y = b_R_chest[1]
         b_R_chest_z = b_R_chest[2]
 
-        head_rotation_LR = np.rad2deg(np.arcsin(np.dot(b_R_head_z,b_R_chest_x)/(np.linalg.norm(b_R_head_z)*np.linalg.norm(b_R_chest_x))))
-        head_flexion_DU = np.rad2deg(np.arcsin(np.dot(b_R_head_y, b_R_chest_z)/(np.linalg.norm(b_R_head_y)*np.linalg.norm(b_R_chest_z))))
-        head_flexion_CCWCW = np.rad2deg(np.arcsin(np.dot(b_R_head_y, b_R_chest_x)/(np.linalg.norm(b_R_head_y)*np.linalg.norm(b_R_chest_x))))
+        head_rotation_LR = np.rad2deg(np.arcsin((np.dot(b_R_head_z, b_R_chest_x))/e2norm(b_R_head_z, b_R_chest_x)))
+        head_flexion_DU = np.rad2deg(np.arcsin((np.dot(b_R_head_y, b_R_chest_z))/e2norm(b_R_head_y, b_R_chest_z)))
+        head_flexion_CCWCW = np.rad2deg(-np.arcsin((np.dot(b_R_head_y, b_R_chest_x))/e2norm(b_R_head_y, b_R_chest_x)))
         
         return head_rotation_LR, head_flexion_DU, head_flexion_CCWCW
-
-    def ShoulderAngles(rightShoulder, rightElbow, leftShoulder, leftElbow, chest_zaxis, chest_xaxis):
-        '''
-        rs: right shoulder
-        ls: left shoulder
-        '''
-        rightElbowLine = rightElbow - rightShoulder # line connecting the elbow and the shoulder centered in zero, remember that also chest_*axis is centered in zero
-        # chest_zaxis points forward, i.e. the direction of the forehead
-        rs_flexion_FB = np.rad2deg(np.arcsin(np.dot(rightElbowLine,chest_zaxis)/(np.linalg.norm(rightElbowLine)*np.linalg.norm(chest_zaxis))))
-        rs_abduction_CWCCW = np.rad2deg(np.arcsin(np.dot(rightElbowLine,-chest_xaxis)/(np.linalg.norm(rightElbowLine)*np.linalg.norm(chest_xaxis))))
-        
-        leftElbowLine = leftElbow - leftShoulder
-        # chest_zaxis points forward, i.e. the direction of the forehead
-        ls_flexion_FB = np.rad2deg(np.arcsin(np.dot(leftElbowLine,chest_zaxis)/(np.linalg.norm(leftElbowLine)*np.linalg.norm(chest_zaxis))))
-        ls_abduction_CCWCW = np.rad2deg(np.arcsin(np.dot(leftElbowLine,chest_xaxis)/(np.linalg.norm(leftElbowLine)*np.linalg.norm(chest_xaxis))))
-        
-        return rs_flexion_FB, rs_abduction_CWCCW, ls_flexion_FB, ls_abduction_CCWCW
-    
-    def ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist):
-        '''
-        re: right elbow
-        le: left elbow
-        '''
-        rightWristLine = rightWrist - rightElbow # line connecting the elbow and the wrist centered in zero
-        rightElbowLine = rightElbow - rightShoulder # line connecting the shoulder and the elbow centered in zero
-        re_flexion = np.rad2deg(np.arccos(np.dot(rightWristLine,rightElbowLine)/(np.linalg.norm(rightWristLine)*np.linalg.norm(rightElbowLine))))
-        
-        leftWristLine = leftWrist - leftElbow # line connecting the elbow and the wrist centered in zero
-        leftElbowLine = leftElbow - leftShoulder # line connecting the elbow and the shoulder centered in zero
-        le_flexion = np.rad2deg(np.arccos(np.dot(leftWristLine,leftElbowLine)/(np.linalg.norm(leftWristLine)*np.linalg.norm(leftElbowLine))))
-        
-        return re_flexion, le_flexion
-    
-    def WristAngles(Elbow, Wrist, Hand, Index, Pinky):
-        '''
-        lw: left wrist
-        le: left elbow
-        Observation: Here you cannot use the arccosine wrt a line going further the writst as you can twist your wrist laterally and UD, you need to use arcsin with a line poining up your wrist
-        '''
-        
-        '''
-        1- compute the elbow line as the line connecting wrist and elbow
-        2- compute the lateral direction using the line connecting the index to the pinky finger
-        3- Compute the third direction as the one pointing up and starting from the wrist.
-        4- Use that orthogonal direction to compute the wrist UD angle. As the line
-        '''
-        
-        up_direction = np.array([0,0,1.0]) # Line pointing up in the world reference frame, it is used to compute the 
-        HandLine = normalize(Hand - Wrist) # line connecting the wrist and the hand centered in zero
-        WristLine = normalize(Wrist - Elbow) # line connecting the elbow and the wrist centered in zero
-        PalmLine = normalize(Index - Pinky) # line connecting the pinky and the index centered in zero
-        OrthogonalPalmLine = normalize(np.cross(WristLine, PalmLine))
-        wrist_flexion_UD = np.rad2deg(np.arcsin(np.dot(HandLine,OrthogonalPalmLine)/(np.linalg.norm(HandLine)*np.linalg.norm(OrthogonalPalmLine))))
-        elbow_rotation_PS = np.rad2deg(-np.arcsin(np.dot(PalmLine,up_direction)/(np.linalg.norm(PalmLine)))) # there is a minus because a rotation toward the body must be positive
-        wrist_rotation_UR = np.rad2deg(np.arccos(np.dot(PalmLine,WristLine)/(np.linalg.norm(PalmLine)*np.linalg.norm(WristLine))))
-        
-        return wrist_flexion_UD, elbow_rotation_PS, wrist_rotation_UR, WristLine, PalmLine, OrthogonalPalmLine
-
-    def KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle):
-        '''
-        rk: right knee
-        lk: left knee
-        
-        1- compute the knee line as the line connecting the hip and the knee
-        2- compute the feet line as the line connecting the knee and the foot
-        3- compute the angle in btw this two lines
-        '''
-        leftkneeLine = leftHip - leftKnee
-        leftFeetLine = leftKnee - leftAnkle
-        lk_flexion = np.rad2deg(np.arccos(np.dot(leftkneeLine,leftFeetLine)/(np.linalg.norm(leftkneeLine)*np.linalg.norm(leftFeetLine))))
-        
-        rightkneeLine = rightHip - rightKnee
-        rightFeetLine = rightKnee - rightAnkle
-        rk_flexion = np.rad2deg(np.arccos(np.dot(rightkneeLine,rightFeetLine)/(np.linalg.norm(rightkneeLine)*np.linalg.norm(rightFeetLine))))
-        
-        return rk_flexion, lk_flexion
     
     def ComputeContactPoints(rk_flexion, lk_flexion, max_knee_difference, rightAnkle, leftAnkle, Hip, min_baricenter_position, max_baricenter_position):
         ############################### Computation of number of Contact points ###########################################

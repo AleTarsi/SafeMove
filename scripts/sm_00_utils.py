@@ -126,8 +126,8 @@ def computeChestFrame(chest, left_shoulder, hip_center):
     The z-axis is the direction connecting the chest and the hip. The x-axis is the direction connecting the chest and the right shoulder.
     '''
     # Compute the direction of the subject
-    x_axis = normalize(left_shoulder - chest)
-    z_axis = normalize(chest - hip_center)
+    x_axis = (left_shoulder - chest)/e2norm(left_shoulder,chest)
+    z_axis = (chest - hip_center)/e2norm(chest, hip_center)
     y_axis = np.cross(z_axis, x_axis)
     R = np.array([x_axis, y_axis, z_axis])
 
@@ -159,11 +159,12 @@ def Plot3DCoordinateFrame(image, _2D_Origin, _3D_Origin, rot_vec, trans_vec, cam
     cv2.line(image, np.array([_2D_Origin[0] , _2D_Origin[1]], dtype=int), np.array([VbaseY[0][0][0] , VbaseY[0][0][1]], dtype=int), green, 3)
     cv2.line(image, np.array([_2D_Origin[0] , _2D_Origin[1]], dtype=int), np.array([VbaseZ[0][0][0] , VbaseZ[0][0][1]], dtype=int), blue, 3)
 
-def normalize(vect):
-    try:
-        return vect/np.linalg.norm(vect)
-    except:
-        return np.zeros(3)
+def e2norm(vect1, vect2):
+    '''
+        Compute the Euclidean 2-norm of one or the product of the norms of two vectors.
+    '''
+
+    return np.linalg.norm(vect1)*np.linalg.norm(vect2)
 
 def from_image_name_2_excel_row_value(file):
     removingPNGextensions = file[:-4]

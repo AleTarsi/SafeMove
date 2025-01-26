@@ -92,11 +92,11 @@ class PoseEstimator:
             ###########################   Angle computation Phase and subPlots ###########################################      
 
             waist_xaxis, waist_yaxis, waist_zaxis = Pose2Angles.BodyAxes(leftHip)
-            gui.BodyReferenceFrame(waist_xaxis, waist_yaxis, waist_zaxis)
+            # gui.BodyReferenceFrame(waist_xaxis, waist_yaxis, waist_zaxis)
             
             chest_xaxis, chest_yaxis, chest_zaxis = Pose2Angles.BackAxes(left_shoulder_point=leftShoulder, chest=Chest, hip=Hip)
-            gui.ChestReferenceFrame(chest_xaxis, chest_yaxis, chest_zaxis, chest=Chest)
-            gui.DrawTrunk(trunk_point=[Chest,Hip,leftHip,rightHip])
+            # gui.ChestReferenceFrame(chest_xaxis, chest_yaxis, chest_zaxis, chest=Chest)
+            # gui.DrawTrunk(trunk_point=[Chest,Hip,leftHip,rightHip])
             
             chest_LR, chest_FB, chest_Rot = Pose2Angles.BackAngles(waist_xaxis, waist_yaxis, waist_zaxis, chest_xaxis, chest_yaxis, chest_zaxis)
             
@@ -106,17 +106,16 @@ class PoseEstimator:
             re_flexion, le_flexion = Pose2Angles.ElbowAngles(rightShoulder,rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist)
             # gui.DrawWristLine(rightWrist,rightElbow,leftWrist,leftElbow)
             
-            if results.right_hand_landmarks:                              
-                r_hand_landmarks = results.right_hand_landmarks.landmark       
+            if results.world_landmarks.multi_hand_world_landmarks:                              
+                r_hand_landmarks = results.multi_hand_world_landmarks.landmark       
                 
                 rightPinkyKnuckle = worldLandmark2numpy(r_hand_landmarks[HandLandmark.PINKY_MCP])
                 rightIndexKnucle = worldLandmark2numpy(r_hand_landmarks[HandLandmark.INDEX_FINGER_MCP])
                 
                 rightHand = computeMidPosition(rightPinkyKnuckle,rightIndexKnucle)[0]
                 
-                rw_flexion_UD, re_rotation_PS, rw_rotation_UR, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = Pose2Angles.WristAngles(rightElbow, rightWrist, rightHand, rightIndexKnucle, rightPinkyKnuckle)
-                # gui.DrawHandLine(rightWrist,rightHand,leftWrist,leftHand)
-                # gui.DrawHandaxes(rightWrist,rightWristLine,rightPalmLine,rightOrthogonalPalmLine)        
+                rw_flexion_UD, re_rotation_PS, rw_rotation_UR, rightWristLine, rightPalmLine, rightOrthogonalPalmLine = Pose2Angles.WristAngles(rightElbow, rightWrist, rightHand, rightIndexKnucle, rightPinkyKnuckle, waist_xaxis)
+                       
                 
             else:
                 rw_flexion_UD, re_rotation_PS, rw_rotation_UR = np.zeros(3)
@@ -129,13 +128,20 @@ class PoseEstimator:
                 leftIndexKnucle = worldLandmark2numpy(l_hand_landmarks[HandLandmark.INDEX_FINGER_MCP])
                 
                 leftHand = computeMidPosition(leftPinkyKnuckle,leftIndexKnucle)[0]
-            
-                lw_flexion_UD, le_rotation_PS, lw_rotation_UR, leftWristLine, leftPalmLine, leftOrthogonalPalmLine = Pose2Angles.WristAngles(leftElbow, leftWrist, leftHand, leftIndexKnucle, leftPinkyKnuckle)
-                # gui.DrawHandLine(rightWrist,rightHand,leftWrist,leftHand)
-                # gui.DrawHandaxes(leftWrist,leftWristLine,leftPalmLine,leftOrthogonalPalmLine)     
+
+                lw_flexion_UD, le_rotation_SP, lw_rotation_UR, leftWristLine, leftPalmLine, leftOrthogonalPalmLine = Pose2Angles.WristAngles(leftElbow, leftWrist, leftHand, leftIndexKnucle, leftPinkyKnuckle, waist_xaxis, left_flag=True)
+                le_rotation_PS = - le_rotation_SP 
+                
                 
             else:
                 lw_flexion_UD, le_rotation_PS, lw_rotation_UR = np.zeros(3)
+            
+            try:
+                gui.DrawHandsLine(rightWrist,rightHand,leftWrist,leftHand)
+                # gui.DrawHandaxes(leftWrist,leftWristLine,leftPalmLine,leftOrthogonalPalmLine)   
+                # gui.DrawHandaxes(rightWrist,rightWristLine,rightPalmLine,rightOrthogonalPalmLine)
+            except:
+                pass
             
             rk_flexion, lk_flexion = Pose2Angles.KneeAngles(rightKnee, leftKnee, rightHip, leftHip, rightAnkle, leftAnkle)
             # gui.DrawKneeLine(rightKnee, leftKnee, rightHip, leftHip)
@@ -162,7 +168,6 @@ class PoseEstimator:
             nose_3d_projection, jacobian = cv2.projectPoints((face_3d[0][0], face_3d[0][1], face_3d[0][2]+1000), rot_vec, trans_vec, cam_matrix, dist_matrix)
             
             face_3d = np.concatenate((face_3d, np.array(([[face_3d[0][0], face_3d[0][1], face_3d[0][2]+100]]))), axis=0)
-
             # gui.Draw3DFace(face_3d) # one 
             
             Rmat,_ = cv2.Rodrigues(rot_vec)

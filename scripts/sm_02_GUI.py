@@ -259,7 +259,7 @@ class Gui:
         self.ax.plot([rightElbow[0], rightWrist[0]], [rightElbow[1], rightWrist[1]],zs=[rightElbow[2], rightWrist[2]], color="purple")
         self.ax.plot([leftElbow[0], leftWrist[0]], [leftElbow[1], leftWrist[1]],zs=[leftElbow[2], leftWrist[2]], color="purple")
         
-    def DrawHandLine(self, rightWrist,rightHand,leftWrist,leftHand):
+    def DrawHandsLine(self, rightWrist,rightHand,leftWrist,leftHand):
         self.ax.plot([rightWrist[0], rightHand[0]], [rightWrist[1], rightHand[1]],zs=[rightWrist[2], rightHand[2]], color="red")
         self.ax.plot([leftWrist[0],leftHand[0]], [leftWrist[1],leftHand[1]],zs=[leftWrist[2],leftHand[2]], color="red")
     

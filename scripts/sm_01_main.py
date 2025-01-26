@@ -153,12 +153,14 @@ if __name__ == "__main__":
                     fps_output_video = sm.computeFPS(end, start)
                     print(f'FPS: {fps_output_video}')
                     out.write(image)
-                # Exit the loop when the ESC key is pressed
-                if cv2.waitKey(5) & 0xFF == 27:
+                # Exit the loop when the ESC key is pressed or the video ends
+                if cv2.waitKey(5) & 0xFF == 27 or not success:
                     break
 
             cap.release()
             out.release()
+            cv2.destroyAllWindows()
+            exit(0)
             
         finally: # Execute this code block at the end of the loop
             reba_score, aggregated_reba_score = RiskAssessment.fromDataFrame2Reba(sm.logger.pose_data, sm.Force, sm.Coupling, sm.Activity)

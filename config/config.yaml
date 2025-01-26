@@ -1,7 +1,7 @@
 # MAIN CONFIGURATION FILE
 
 # SOURCE
-video: "video00.png" # Path to the video to be analyzed, it must be a file in the videos folder
+video: "test_video.mp4" # Path to the video to be analyzed, it must be a file in the videos folder
 webcam: False # If True, the video will be captured from the webcam
 
 # FRAME RATE
