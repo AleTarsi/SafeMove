@@ -107,14 +107,14 @@ class SafeMove():
                     self.gui.draw3D(results.pose_world_landmarks)
                     self.gui.drawLandmark(image,results.pose_landmarks, results.left_hand_landmarks, results.right_hand_landmarks, NN)
             
-            self.gui.showText(image, f'time: {np.round(time_stamp, decimals=2)}', (10,height-50))   
+                self.gui.showText(image, f'time: {np.round(time_stamp, decimals=2)}', (10,height-50))   
             
-            cv2.imshow('Head Pose Estimation', cv2.resize(image, (int(width*1.5), int(height*1.5))))
-            
-            if self.param['save_pictures_in_excel']:
-                self.logger.add_picture(image,time_stamp, self.count, PicturesamplingTime=50)
+                cv2.imshow('Head Pose Estimation', cv2.resize(image, (int(width*1.5), int(height*1.5))))
+                
+                if self.param['save_pictures_in_excel']:
+                    self.logger.add_picture(image,time_stamp, self.count, PicturesamplingTime=50)
 
-            plt.pause(.001)
+                plt.pause(.001)
     
     def get_frame(self, cap):
         for i in range(int(np.ceil(self.param['speed_up']))): # speed_up is an integer indicating the frames to skip 
