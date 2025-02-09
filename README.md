@@ -6,7 +6,7 @@ SafeMove is an open-source project that aims to showcase how AI can be used to s
 |<img src="./_assets/test_image.png" width=700;/>|<img src="./_assets/reba_example.png" width=700;/>|
 
 ## Dependencies:
-The algorithm depends on [MediaPipe](https://github.com/google-ai-edge/mediapipe) a suite of AI tools to perform different visual tasks, such as human pose landmark estimation.
+The algorithm depends on [MediaPipe](https://github.com/google-ai-edge/mediapipe) a suite of AI tools to perform different visual tasks, such as human pose estimation.
 
 1. Install `pip`
     ```bash
