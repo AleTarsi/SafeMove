@@ -4,7 +4,7 @@
 SafeMove is an open-source project that aims to showcase how AI can be used to simplify ergonomic risk assessment through the REBA standard.
 
 <p align="center">
-  <img src="./_assets/demo.gif" alt="Demo" title="Demo" width="640"/>
+  <img src="_assets/demo.gif" alt="Demo" title="Demo" width="500"/>
 </p>
 
 |Prediction|Analysis|
