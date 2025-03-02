@@ -1,5 +1,9 @@
 # SafeMove
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 SafeMove is an open-source project that aims to showcase how AI can be used to simplify ergonomic risk assessment through the REBA standard.
+
+<video src="./_assets/safemove.mp4" width="640" height="480" controls></video>
 
 |Prediction|Analysis|
 |---|---|
@@ -24,6 +28,9 @@ Enter in the project directory and launch the following script:
 python scripts/sm_01_main.py
 ```
 
+Provide information regarding the force, coupling and activity score as present in the REBA standard.
+
+
 ## Results:
 Enter in the folder `output` to visualize the results of your test.
 
@@ -32,9 +39,5 @@ You can visualize risk as body part graphs or as automatic generated excel conta
 |Body Parts|Excel|
 |---|---|
 |<img src="./_assets/angle_risk_example.png" wodth=600;/>|<img src="./_assets/excel_example.png" wodth=600;/>|
-
-## Licence:
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
